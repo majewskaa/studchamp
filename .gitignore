@@ -1,0 +1,5 @@
+other
+.benchmarks
+.pytest_cache
+venv/lib*
+FastAPI/__pycache__
