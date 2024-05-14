@@ -1,5 +1,7 @@
 other
 .benchmarks
 .pytest_cache
-venv/lib*
+venv
 FastAPI/__pycache__
+inherited_work
+.env

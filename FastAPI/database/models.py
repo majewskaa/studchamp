@@ -1,12 +1,16 @@
-from database import Base
-from sqlalchemy import Column, Integer, String, Boolean, Float
+from database.database import Base
+from sqlalchemy import Column, Integer, String, Boolean
 
 class User(Base):
-    __tablename__='user'
+    __tablename__='users'
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    last_name = Column(String)
+    name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    email = Column(String, unique=True)
+    password = Column(String, unique=True)
+    usos_access_token = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
 
 class User_in_group(Base):
     __tablename__='user_in_group'

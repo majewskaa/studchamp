@@ -1,3 +1,5 @@
 fastapi
 uvicorn
+oauth2
+bcrypt
 sqlalchemy
