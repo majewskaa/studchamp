@@ -1,35 +1,62 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
 
+.loggedin-page {
+    background-color: #D9D9D9;
+    width: 100%;
+    height: 100vh;
+}
 .header {
     background-color: #1A2044;
     display: flex;
     justify-content: space-between;
     padding-left: 50%;
-    padding-bottom: 1vmin;
+    padding-bottom: 0.5rem;
     align-items: center;
 
 
     .logo {
-        height: 10vmin;
+        height: 4rem;
     }
 
     .header-end {
-        padding: 1vmin 5vmin;
+        padding: 0.5rem 1.5rem;
         display: flex;
+        align-items: center;
 
         .button {
-            margin-right: 2vmin;
+            margin-right: 1rem;
         }
         .inside-button {
-            background-color: #FFD700;
+            background-color: black;
+            color: white;
             border: none;
-            border-radius: 5px;
-            padding: 1vmin 2vmin;
-            font-size: 1.5em;
+            border-radius: 10%;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
+            text-transform: none;
+            max-height: 3rem;
+        }
 
+        .inside-button-person {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background-color: black;
+            margin-right: 0.5rem;
         }
     }
+}
+
+
+.person-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .login-modal-box {
@@ -70,4 +97,83 @@
         font-weight: bold;
         align-self: end;
     }
+}
+
+.secton-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem;
+}
+
+.section {
+    flex: 1;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    padding: 0.5rem;
+    padding-top: 0;
+    border-radius: 10px;
+    background-color: #AEAAAA;
+}
+
+.section-large {
+    flex: 1.5;
+    height: 100%;
+}
+
+.card {
+    background-color: #D9D9D9;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    display: flex;
+    .update-card {
+        margin: 0.5rem;
+        .right-side-card-content{
+            margin: 0;
+            font-size: 14px;
+            .content {
+                margin: 0;
+                margin-right: 0.5rem;
+                display: flex;
+                font-size: 15px;
+            }
+        }
+    }
+}
+
+.subject-card {
+    margin: 0.5rem;
+    justify-content: center;
+    text-decoration: none;
+    color: black;
+}
+
+.task-card {
+    margin: 0.5rem;
+    display: flex;
+    .content {
+        display: flex;
+        margin: 0;
+    }
+    .points {
+        color: green;
+    }
+}
+
+.avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    display: flex;
+}
+
+.title {
+    border: 3px solid #1A2044;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    color: #1A2044;
+    background-color: #AEAAAA;
+    margin-top: 0.5rem;
 }

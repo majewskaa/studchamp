@@ -4,14 +4,17 @@ import './index.css';
 import HomePage from './pages/homePage/HomePage';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './security/AuthProvider';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 ReactDOM.render(
-    <AuthProvider>
-      <HomePage />
-    </AuthProvider>,
+    <Router>
+        <AuthProvider>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+            </Routes>
+        </AuthProvider>
+    </Router>,
     document.getElementById('root')
-  );
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+);
+
 reportWebVitals();
