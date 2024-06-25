@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      setIsLoggedIn(false);
+      setIsLoggedIn(true);
     }
   }, []);
 

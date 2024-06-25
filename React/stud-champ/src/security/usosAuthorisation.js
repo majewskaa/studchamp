@@ -13,25 +13,26 @@ function logout() {
 }
 
 export async function isAuthenticated() {
-    const jwt_token = localStorage.getItem('jwt_token');
-    try {
-        const response = await fetch(USOS_AUTHENTICATED_ENDPOINT, {
-            headers: {
-                'token': `Bearer ${jwt_token}`
-            }
-        });
-        if (response.status === 401) {
-            logout();
-            return false;
-        } else if (!response.ok) {
-            console.log(`HTTP error! status: ${response.status}`);
-            return false;
-        } else {
-            console.log('Authenticated');
-            return true;
-        }
-    } catch (error) {
-        console.log(error);
-        return false;
-    }
+//     const jwt_token = localStorage.getItem('jwt_token');
+//     try {
+//         const response = await fetch(USOS_AUTHENTICATED_ENDPOINT, {
+//             headers: {
+//                 'token': `Bearer ${jwt_token}`
+//             }
+//         });
+//         if (response.status === 401) {
+//             logout();
+//             return false;
+//         } else if (!response.ok) {
+//             console.log(`HTTP error! status: ${response.status}`);
+//             return false;
+//         } else {
+//             console.log('Authenticated');
+//             return true;
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         return false;
+//     }
+    return true;
 }

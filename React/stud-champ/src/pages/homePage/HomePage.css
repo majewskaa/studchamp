@@ -151,13 +151,16 @@ html, body {
 .task-card {
     margin: 0.5rem;
     display: flex;
-    .content {
-        display: flex;
-        margin: 0;
-    }
+    align-items: center;
     .points {
+        margin: 0.8rem;
         color: green;
     }
+}
+
+.task-name-container {
+    flex-grow: 1;
+    margin-right: 30rem;
 }
 
 .avatar {
@@ -176,4 +179,9 @@ html, body {
     color: #1A2044;
     background-color: #AEAAAA;
     margin-top: 0.5rem;
+}
+
+.content-log {
+    display: flex;
+    justify-content: space-between;
 }

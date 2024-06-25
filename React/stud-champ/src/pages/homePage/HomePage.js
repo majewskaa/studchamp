@@ -1,11 +1,11 @@
 import logo from '../../resources/logo.png';
-import person from '../../resources/person.png';
 import './HomePage.css';
 import Button from '@material-ui/core/Button';
 import React from 'react';
 import Modal from '@material-ui/core/Modal';
 import { HomePageHook } from './HomePage-hook';
 import Breadcrumb from '../../components/Breadcrumb';
+import Header from '../../components/Header';
 import { Link } from 'react-router-dom';
 
 function HomePage() {
@@ -32,15 +32,7 @@ function HomePage() {
         {
             isLoggedIn ?
             <div className='loggedin-page'>
-                <header className="header">
-                    <img src={logo} className="logo" alt="logo" />
-                    <div className="header-end">
-                    <Button variant="contained" className="inside-button-person" size="medium" onClick={handleProfileButtonClicked}>
-                        <img src={person} className="person-img" alt="person" />
-                    </Button>
-                        <Button variant="contained"  className="inside-button" size="medium" onClick={() => setIsLoggedIn(false)}>Log Out</Button>
-                    </div>
-                </header>
+                <Header setIsLoggedIn={setIsLoggedIn} handleProfileButtonClicked={handleProfileButtonClicked}/>
                 <div className="secton-container">
                     <div className="section">
                         <h2 className="title">Last Updates</h2>
@@ -49,8 +41,8 @@ function HomePage() {
                                 <div className='card update-card'>
                                     <img className='content avatar' src={update.author.avatar} alt="person" />
                                     <h3 className='right-side-card-content'>
-                                        <Breadcrumb subject={update.subject} project={update.project} task={update.task} />
-                                        <h3 className='content'>{update.type}: {update.content}</h3>
+                                        <Breadcrumb subject={update.subject.id} project={update.project} task={update.task} />
+                                        <span className='content'>{update.type}: {update.content}</span>
                                     </h3>
                                 </div>
                             </div>
@@ -59,8 +51,8 @@ function HomePage() {
                     <div className="section section-large">
                         <h2 className="title">Your Subjects</h2>
                         {subjectsList.map((subject, index) => (
-                            <Link  className='card subject-card' key={index} to={`/subjects/${subject.id}`}>
-                                <h3 className='content'> {subject.name}</h3>
+                            <Link  className='card subject-card' key={index} to={`/subjects/${subject}`}>
+                                <h3 className='content'> {subject}</h3>
                             </Link>
                         ))}
                     </div>
@@ -72,7 +64,7 @@ function HomePage() {
                                     {task.points}
                                 </div>
                                 <div>
-                                    <Breadcrumb subject={task.subject} project={task.project} />
+                                    <Breadcrumb subject={task.subject.id} project={task.project} />
                                     <h3 className='content'>{task.name}</h3>
                                 </div>
                                 <img className='content avatar' src={curent_user.avatar} alt="person" />

@@ -1,6 +1,6 @@
 Activate environment:
 
-source env/bin/activate
+source venv/bin/activate
 
 pip3 install -r packages
 

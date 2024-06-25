@@ -1,6 +1,5 @@
-
 import { AuthContext } from '../../security/AuthProvider';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import avatar from '../../resources/avatar.png';
 
 /**
@@ -31,6 +30,7 @@ export function HomePageHook() {
     const [openLogIn, setOpenLogIn] = useState(false);
     const [openSignIn, setOpenSignIn] = useState(false);
     const [responseMessage, setResponseMessage] = useState('');
+    const [subjectsList, setSubjectsList] = useState([]);
 
     const API_URL = process.env.REACT_APP_API_URL
 
@@ -95,24 +95,49 @@ export function HomePageHook() {
         },
     ];
 
-    const subjectsList = [
-        {
-            name: 'TKOM',
-            id: '1',
-            active: true,
-        },
-        ,
-        {
-            name: 'SAD',
-            id: '2',
-            active: true,
-        },
-        {
-            name: 'GKOM',
-            id: '3',
-            active: false,
-        }
-    ];
+    // const subjectsList = [
+    //     {
+    //         name: 'TKOM',
+    //         id: '1',
+    //         active: true,
+    //     },
+    //     ,
+    //     {
+    //         name: 'SAD',
+    //         id: '2',
+    //         active: true,
+    //     },
+    //     {
+    //         name: 'GKOM',
+    //         id: '3',
+    //         active: false,
+    //     }
+    // ];
+
+    const curent_user = {
+        id: 1,
+        avatar: avatar
+    }
+
+    useEffect(() => {
+        fetch(process.env.REACT_APP_API_URL + '/subjects', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            setResponseMessage(data.message);
+            if (data.success) {
+                setSubjectsList(data.subjects);
+            }
+        })
+        .catch((error) => {
+            setResponseMessage(error.toString());
+            console.error('Error:', error);
+        });
+    }, []);
 
     const tasksAssignedToUser = [
         {
@@ -144,11 +169,6 @@ export function HomePageHook() {
             points: 7
         }
     ];
-
-    const curent_user = {
-        id: 1,
-        avatar: avatar
-    }
 
 
     const handleSubmmitLogIn = (event) => {

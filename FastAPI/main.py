@@ -16,6 +16,7 @@ from urllib.parse import parse_qsl
 import json
 from typing import Optional
 from utils import authenticate_user, create_user
+from database.get_objects import get_subject
 
 app = FastAPI()
 origins = [
@@ -40,6 +41,18 @@ consumer_secret = 'zFvZvE7xh3DMDGJ7NZggeUSvvaa7N8PFKFJK3uNe'
 
 access_token_key = 'Ct2MX9bwwe9B2BF2wrKZ'
 access_token_secret = 'gcZZjWTvfzaUkwbMAStUgkft8M3NjcPXHAG2QPg3'
+
+usosapi_base_url_secure = usosapi_base_url.replace("http://", "https://")
+request_token_url = usosapi_base_url_secure + 'services/oauth/request_token?scopes=studies|offline_access'
+authorize_url = usosapi_base_url + 'services/oauth/authorize'
+access_token_url = usosapi_base_url_secure + 'services/oauth/access_token'
+
+consumer = oauth.Consumer(consumer_key, consumer_secret)
+
+def _read_token(content):
+        arr = {k.decode(): v.decode() for k, v in parse_qsl(content)}
+        print(f"Parsed content: {arr}")
+        return oauth.Token(arr['oauth_token'], arr['oauth_token_secret'])
 
 class GroupBase(BaseModel):
     code: str
@@ -69,6 +82,9 @@ class LoginData(BaseModel):
 class RegisterUserData(BaseModel):
     password: str
     email: str
+
+class GetSubjectsData(BaseModel):
+    user_id: int
 
 def get_db():
     db = SessionLocal()
@@ -107,22 +123,13 @@ async def delete_group(group_id: int, db: db_dependency):
 
 @app.get("/oauth/usos")
 def redirect_to_usos():
-    usosapi_base_url_secure = usosapi_base_url.replace("http://", "https://")
-    request_token_url = usosapi_base_url_secure + 'services/oauth/request_token?scopes=studies|offline_access'
-    authorize_url = usosapi_base_url + 'services/oauth/authorize'
-    access_token_url = usosapi_base_url_secure + 'services/oauth/access_token'
-    consumer = oauth.Consumer(consumer_key, consumer_secret)
-
     # Step 1. Request Token
     client = oauth.Client(consumer)
     request_token_url = f"{usosapi_base_url_secure}services/oauth/request_token?scopes=studies|offline_access&oauth_callback=oob"
     resp, content = client.request(request_token_url, "GET")
     if resp['status'] != '200':
         raise Exception("Invalid response %s:\n%s" % (resp['status'], content))
-    def _read_token(content):
-        arr = {k.decode(): v.decode() for k, v in parse_qsl(content)}
-        print(f"Parsed content: {arr}")
-        return oauth.Token(arr['oauth_token'], arr['oauth_token_secret'])
+
     request_token = _read_token(content)
     # Step 2. Obtain authorization
     print ("Go to the following link in your browser:")
@@ -191,12 +198,12 @@ def logout():
 
 @app.get("/is_authenticated")
 def is_authenticated(token: str = Depends(oauth2_scheme)):
-    if not auth.jwt_token or token != auth.jwt_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # if not auth.jwt_token or token != auth.jwt_token:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Invalid authentication credentials",
+    #         headers={"WWW-Authenticate": "Bearer"},
+    #     )
     return {"message": f'Authenticated {token}' }
 
 
@@ -217,3 +224,69 @@ def register(form_data: RegisterUserData):
 @app.get("/")
 def hello():
     print("Hello")
+
+def request_new_token():
+    # Step 1. Request Token
+    client = oauth.Client(consumer)
+    request_token_url = f"{usosapi_base_url_secure}services/oauth/request_token?scopes=studies|offline_access&oauth_callback=oob"
+    resp, content = client.request(request_token_url, "GET")
+    if resp['status'] != '200':
+        raise Exception("Invalid response %s:\n%s" % (resp['status'], content))
+
+    request_token = _read_token(content)
+    # Step 2. Obtain authorization
+    print ("Go to the following link in your browser:")
+    print ("%s?oauth_token=%s" % (authorize_url, request_token.key))
+    print('\n')
+    oauth_verifier = input('What is the PIN code? ')
+    # Step 3. Access Token
+    request_token.set_verifier(oauth_verifier)
+    client = oauth.Client(consumer, request_token)
+    resp, content = client.request(access_token_url, "GET")
+    try:
+        access_token = _read_token(content)
+    except KeyError:
+        print( "Cound not retrieve Access Token (invalid PIN?).")
+        sys.exit(1)
+    return(access_token.key, access_token.secret)
+
+def filter_active_courses(data):
+    current_term = data['terms'][-1]['id']
+    courses = data['groups'][current_term]
+    ids = []
+
+    for course in courses:
+        id = course['course_id']
+        if id not in ids:
+            ids.append(course['course_id'])
+
+    return ids
+
+@app.get("/subjects")
+def get_subjects():
+    # if not auth.jwt_token or token != auth.jwt_token:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Invalid authentication credentials",
+    #         headers={"WWW-Authenticate": "Bearer"},
+    #     )
+
+    access_token_key = 'Ct2MX9bwwe9B2BF2wrKZ'
+    access_token_secret = 'gcZZjWTvfzaUkwbMAStUgkft8M3NjcPXHAG2QPg3'
+
+    access_token = oauth.Token(access_token_key, access_token_secret)
+    client = oauth.Client(consumer,  access_token)
+
+    resp2, content2 = client.request(usosapi_base_url + "services/groups/user?fields=course_name|group_number|course_is_currently_conducted", "GET")
+    if resp2['status'] == '401':
+        (access_token_key, access_token_secret) = request_new_token()
+        access_token = oauth.Token(access_token_key, access_token_secret)
+        client = oauth.Client(consumer,  access_token)
+        resp2, content2 = client.request(usosapi_base_url + "services/groups/user?fields=course_name|group_number|course_is_currently_conducted", "GET")
+    items = json.loads(content2)
+    # print(items)
+    active_courses_ids = filter_active_courses(items)
+    print(active_courses_ids)
+    return {"success": True, "message": "Success", "subjects" : active_courses_ids}
+
+

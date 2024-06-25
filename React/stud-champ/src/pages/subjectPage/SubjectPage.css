@@ -1,0 +1,51 @@
+.underheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: black;
+    color: white;
+
+
+    .subject-outline {
+        background-color: #232c5c;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        display: inline-block;
+        margin-left: 1rem;
+    }
+}
+.coin-container {
+    display: flex;
+    align-items: center;
+    margin: 0.5rem;
+}
+
+.coin-display {
+    display: flex;
+    align-items: center;
+    .coin-image {
+        width: 2.6rem;
+        height: 2.6rem;
+        display: block;
+        margin-right: 1rem;
+    }
+}
+
+.coin-count {
+    color: white;
+    font-style: normal;
+    background-color: #232c5c;
+    border-radius: 25%;
+    padding: 0.5rem;
+    margin-right: 3rem;
+    min-width: 3rem;
+    text-align: left;
+    font-size: 1.3rem;
+}
+
+.team-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
