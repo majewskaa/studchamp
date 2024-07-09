@@ -1,27 +1,50 @@
 import { AuthContext } from '../../security/AuthProvider';
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 
-export function SubjectPageHook() {
+export function SubjectPageHook(subject_id) {
     const { setIsLoggedIn } = useContext(AuthContext);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [teamsList, setTeamsList] = useState([]);
+    const [responseMessage, setResponseMessage] = useState('');
 
     const handleProfileButtonClicked = () => {
         //
     }
 
-    const teamsList = [
-        {
-            id: '1',
-            name: 'Team 1'
-        },
-        {
-            id: '2',
-            name: 'Team 2'
-        },
-        {
-            id: '3',
-            name: 'Team 3'
-        }
-    ];
+    useEffect(() => {
+        fetch(process.env.REACT_APP_API_URL + '/teams/' + subject_id, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            setResponseMessage(data.message);
+            if (data.success) {
+                setTeamsList(data.teams);
+            }
+        })
+        .catch((error) => {
+            setResponseMessage(error.toString());
+            console.error('Error:', error);
+        });
+    }, []);
+
+    // const teamsList = [
+    //     {
+    //         id: '1',
+    //         name: 'Team 1'
+    //     },
+    //     {
+    //         id: '2',
+    //         name: 'Team 2'
+    //     },
+    //     {
+    //         id: '3',
+    //         name: 'Team 3'
+    //     }
+    // ];
 
     const taskList = [
         {
@@ -56,7 +79,11 @@ export function SubjectPageHook() {
         }
     ];
 
+
+
     return {
+        isModalOpen,
+        setIsModalOpen,
         setIsLoggedIn,
         teamsList,
         taskList,

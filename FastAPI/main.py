@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Depends, status, FastAPI
+from fastapi import HTTPException, Depends, status, FastAPI, Path
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -15,7 +15,7 @@ from datetime import datetime
 from urllib.parse import parse_qsl
 import json
 from typing import Optional
-from utils import authenticate_user, create_user
+from utils import *
 from database.get_objects import get_subject
 
 app = FastAPI()
@@ -82,6 +82,11 @@ class LoginData(BaseModel):
 class RegisterUserData(BaseModel):
     password: str
     email: str
+
+class RegisterTeamData(BaseModel):
+    name: str
+    group_code: str
+    users: list
 
 class GetSubjectsData(BaseModel):
     user_id: int
@@ -286,7 +291,17 @@ def get_subjects():
     items = json.loads(content2)
     # print(items)
     active_courses_ids = filter_active_courses(items)
+    add_courses(active_courses_ids)
     print(active_courses_ids)
     return {"success": True, "message": "Success", "subjects" : active_courses_ids}
 
 
+@app.post("/teams")
+def register_team(form_data: RegisterTeamData):
+    response = create_team(form_data)
+    return response
+
+@app.get("/teams/{subject_id}")
+def get_teams(subject_id: str = Path(..., description="Subject ID")):
+    response = fetch_teams(subject_id)
+    return response

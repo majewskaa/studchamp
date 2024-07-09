@@ -4,17 +4,20 @@ import Header from '../../components/Header';
 import { SubjectPageHook } from './SubjectPage-hook';
 import coinImage from '../../resources/gold-coin.svg';
 import { Link } from 'react-router-dom';
+import AddTeamModal from '../../components/AddTeamModal';
 
 import './SubjectPage.css';
 
 function SubjectPage() {
     let { subject_id } = useParams();
     const {
+        isModalOpen,
+        setIsModalOpen,
         setIsLoggedIn,
         teamsList,
         taskList,
         handleProfileButtonClicked
-    } = SubjectPageHook();
+    } = SubjectPageHook(subject_id);
 
     const coinCount = 10;
 
@@ -40,6 +43,7 @@ function SubjectPage() {
                             <h3 className='content'> {team.name}</h3>
                         </Link>
                     ))}
+                    <button className="add-team-btn" onClick={() => setIsModalOpen(true)}>Add Team</button>
                 </div>
                 <div className="section section-large">
                     <h2 className="title">Colaboration Tasks</h2>
@@ -60,6 +64,7 @@ function SubjectPage() {
                     ))}
                 </div>
             </div>
+            <AddTeamModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} groupId={subject_id} />
         </div>
     );
 }
