@@ -84,12 +84,10 @@ def fetch_tasks(subject_code: str, team_id: int):
 def create_task(task_data):
     try:
         db = SessionLocal()
-        print(task_data.subject_code)
         group = db.query(Group).filter(Group.code == task_data.subject_code).first()
-        print(group.id)
         create_issue_in_database(db, title=task_data.title, description=task_data.description,
                                   points=task_data.points, author_id=task_data.author_id,
-                                  group_id=group.id, team_id=task_data.team_id)
+                                  group_id=group.id, team_id=task_data.team_id, project_id=task_data.project_id)
     except Exception as e:
         db.close()
         return {"success": False, "message": e}
@@ -97,3 +95,47 @@ def create_task(task_data):
         db.close()
         print("Task created successfully")
     return {"success": True, "message": "Task created successfully"}
+
+def create_project(project_data):
+    try:
+        db = SessionLocal()
+        print(project_data.subject_code)
+        group = db.query(Group).filter(Group.code == project_data.subject_code).first()
+        print(group)
+        project = create_project_in_database(db, name=project_data.name, description=project_data.description,
+                                   group_id=group.id, team_id=project_data.team_id)
+        print("Project created successfully: ", project)
+    except Exception as e:
+        db.close()
+        print(e)
+        return {"success": False, "message": e}
+    finally:
+        db.close()
+    return {"success": True, "message": "Project created successfully"}
+
+def fetch_projects(subject_code: str, team_id: int):
+    try:
+        db = SessionLocal()
+        group = db.query(Group).filter(Group.code == subject_code).first()
+        projects = db.query(Project).filter(Project.group_id == group.id).filter(Project.team_id == team_id).all()
+        print("Projects fetched successfully: ", projects)
+    except Exception as e:
+        db.close()
+        print(e)
+        return {"success": False, "message": e}
+    finally:
+        db.close()
+    return {"success": True, "projects": projects}
+
+def fetch_project(project_id: int):
+    try:
+        db = SessionLocal()
+        project = db.query(Project).filter(Project.id == project_id).first()
+        print("Project fetched successfully: ", project)
+    except Exception as e:
+        db.close()
+        print(e)
+        return {"success": False, "message": e}
+    finally:
+        db.close()
+    return {"success": True, "project": project}

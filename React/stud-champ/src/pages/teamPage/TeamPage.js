@@ -6,13 +6,13 @@ import Header from '../../components/Header';
 import { AuthContext } from '../../security/AuthProvider';
 import coinImage from '../../resources/gold-coin.svg';
 import { Link } from 'react-router-dom';
-import AddTaskModal from '../../components/AddTaskModal';
+import AddProjectModal from '../../components/AddProjectModal';
 
 function TeamPage() {
     let { subject_id, team_id } = useParams();
     const coinCount = 10;
 
-    const [tasksList, setTasksList] = useState([]);
+    const [projectsList, setProjectsList] = useState([]);
     const [responseMessage, setResponseMessage] = useState('');
     const { isLoggedIn, setIsLoggedIn, userId } = useContext(AuthContext);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,7 +22,7 @@ function TeamPage() {
     }
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_URL + '/tasks/' + subject_id + '/' + team_id, {
+        fetch(process.env.REACT_APP_API_URL + '/projects/' + subject_id + '/' + team_id, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -32,7 +32,7 @@ function TeamPage() {
         .then(data => {
             setResponseMessage(data.message);
             if (data.success) {
-                setTasksList(data.tasks);
+                setProjectsList(data.projects);
             }
         })
         .catch((error) => {
@@ -55,21 +55,20 @@ function TeamPage() {
                     </div>
                 </div>
             </div>
-            <div className="secton-container-tasks">
+            <div className="secton-container-projects">
                 <div className="section section-large">
-                    <h2 className="title">Your Tasks</h2>
-                    {tasksList.map((task, index) => (
-                        <div className='task-container' key={index}>
-                        <span className='task-points'>{task.points}</span>
-                        <Link className='task-title' to={`/subjects/${subject_id}/teams/${team_id}/tasks/${task.id}`}>
-                            <h3>{task.title}</h3>
+                    <h2 className="title">Projects</h2>
+                    {projectsList.map((project, index) => (
+                        <div className='project-container' key={index}>
+                        <Link className='project-title' to={`/subjects/${subject_id}/teams/${team_id}/projects/${project.id}`}>
+                            <h3>{project.name}</h3>
                         </Link>
                         </div>
                     ))}
-                    <button className="add-task-btn" onClick={() => setIsModalOpen(true)}>Add Task</button>
+                    <button className="add-project-btn" onClick={() => setIsModalOpen(true)}>Add Project</button>
                 </div>
             </div>
-            <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} />
+            <AddProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} />
         </div>
     );
 }

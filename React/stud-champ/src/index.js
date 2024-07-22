@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import HomePage from './pages/homePage/HomePage';
 import SubjectPage from './pages/subjectPage/SubjectPage';
+import ProjectPage from './pages/projectPage/ProjectPage';
 import TeamPage from './pages/teamPage/TeamPage';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './security/AuthProvider';
@@ -15,6 +16,7 @@ ReactDOM.render(
                 <Route path="/" element={<HomePage />} />
                 <Route path="/subjects/:subject_id" element={<SubjectPage />} />
                 <Route path="/subjects/:subject_id/teams/:team_id" element={<TeamPage />} />
+                <Route path="/subjects/:subject_id/teams/:team_id/projects/:project_id" element={<ProjectPage />} />
             </Routes>
         </AuthProvider>
     </Router>,

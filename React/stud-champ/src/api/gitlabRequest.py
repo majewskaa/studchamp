@@ -25,4 +25,10 @@ def create_new_usos_group(request_data):
     else:
         print("Failed to create group:", response.text)
 
-create_new_usos_group(request_data)
+def create_new_usos_project(request_data):
+    response = requests.post(url, json=request_data, headers=headers)
+
+    if response.status_code == 201:
+        print("Project created successfully!")
+    else:
+        print("Failed to create project:", response.text)

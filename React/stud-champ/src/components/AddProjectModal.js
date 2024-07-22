@@ -1,43 +1,38 @@
 import React, { useState } from 'react';
 
-function AddTaskModal({ isOpen, onClose, subjectId, teamId, authorId, projectId }) {
-    const [taskDetails, setTaskDetails] = useState({
+function AddProjectModal({ isOpen, onClose, subjectId, teamId, authorId, projectId }) {
+    const [projectDetails, setProjectDetails] = useState({
         title: '',
         description: '',
-        points: '',
     });
     const [responseMessage, setResponseMessage] = useState('');
     const API_URL = process.env.REACT_APP_API_URL;
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setTaskDetails(prevDetails => ({
+        setProjectDetails(prevDetails => ({
             ...prevDetails,
             [name]: value,
         }));
     };
 
-    const handleSubmitCreateTask = (event) => {
+    const handleSubmitCreateProject = (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const title = formData.get('title');
         const description = formData.get('description');
-        const points = formData.get('points');
-        console.log('title type:', projectId);
+        console.log('title type:', title.type);
 
         const payload = {
-            title: title,
+            name: title,
             description: description,
-            points: parseInt(points),
-            author_id: 1,
             team_id: parseInt(teamId),
             subject_code: subjectId,
-            project_id: parseInt(projectId),
         };
 
         console.log('payload:', payload);
 
-        fetch(API_URL + '/tasks', {
+        fetch(API_URL + '/projects', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -70,29 +65,21 @@ function AddTaskModal({ isOpen, onClose, subjectId, teamId, authorId, projectId 
     return (
         <div className="modal-backdrop">
             <div className="modal">
-                <h2 className="modal-box-header">Add new Task</h2>
-                <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmitCreateTask}>
+                <h2 className="modal-box-header">Add new Project</h2>
+                <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmitCreateProject}>
                     <input
                         className='modal-box-form-content'
                         name="title"
                         type="text"
                         placeholder="Title"
-                        value={taskDetails.title}
+                        value={projectDetails.title}
                         onChange={handleInputChange}
                     />
                     <textarea
                         className='modal-box-form-content'
                         name="description"
                         placeholder="Description"
-                        value={taskDetails.description}
-                        onChange={handleInputChange}
-                    />
-                    <input
-                        className='modal-box-form-content'
-                        name="points"
-                        type="number"
-                        placeholder="Points"
-                        value={taskDetails.points}
+                        value={projectDetails.description}
                         onChange={handleInputChange}
                     />
                     <div className="modal-box-form-footer">
@@ -105,4 +92,4 @@ function AddTaskModal({ isOpen, onClose, subjectId, teamId, authorId, projectId 
     );
 }
 
-export default AddTaskModal;
+export default AddProjectModal;

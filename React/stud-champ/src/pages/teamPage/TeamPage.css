@@ -1,29 +1,19 @@
-.secton-container-tasks {
+.secton-container-projects {
     width: 50%;
   }
 
-.task-container {
+.project-container {
     background-color: #D9D9D9;
     border-radius: 1rem;
     display: flex;
+    justify-content: center;
     align-items: center;
+    height: 100%;
     margin: 0.7rem;
 }
 
-.task-points {
-    font-size: 24px;
-    font-weight: bold;
-    color: #256D1B;
-    margin-right: 1.5rem;
-    margin-left: 1.5rem;
-}
-
-.task-title h3 {
+.project-title h3 {
     color: black;
     margin-right: 0.5rem;
     flex: 1;
-}
-
-.task-team-name {
-    color: #00A6A6;
 }
