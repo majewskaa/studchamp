@@ -88,6 +88,14 @@ class RegisterTeamData(BaseModel):
     group_code: str
     users: list
 
+class RegisterTaskData(BaseModel):
+    title: str
+    description: str
+    points: int
+    author_id: int
+    team_id: int
+    subject_code: str
+
 class GetSubjectsData(BaseModel):
     user_id: int
 
@@ -304,4 +312,15 @@ def register_team(form_data: RegisterTeamData):
 @app.get("/teams/{subject_id}")
 def get_teams(subject_id: str = Path(..., description="Subject ID")):
     response = fetch_teams(subject_id)
+    return response
+
+@app.post("/tasks")
+def register_task(form_data: RegisterTaskData):
+    print('dupa')
+    response = create_task(form_data)
+    return response
+
+@app.get("/tasks/{subject_id}/{team_id}")
+def get_teams(subject_id: str = Path(..., description="Subject ID"), team_id: str = Path(..., description="Team ID")):
+    response = fetch_tasks(subject_id, team_id)
     return response

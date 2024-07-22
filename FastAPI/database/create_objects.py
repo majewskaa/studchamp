@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database.models import User, Group, Team
+from database.models import User, Group, Team, Issue
 
 def create_user_in_database(db: Session, email: str, password: str):
     db_user = User(email=email, password=password)
@@ -7,7 +7,6 @@ def create_user_in_database(db: Session, email: str, password: str):
     db.commit()
     db.refresh(db_user)
     return db_user
-
 
 def create_group_in_database(db: Session, code: str):
     db_group = Group(code=code, status='active')
@@ -17,7 +16,6 @@ def create_group_in_database(db: Session, code: str):
     return db_group
 
 def create_team_in_database(db: Session, name: str, group_code: str, users: list):
-    print("dupa2")
     db_group = db.query(Group).filter(Group.code == group_code).first()
     if not db_group:
         raise Exception("Group not found")
@@ -26,3 +24,13 @@ def create_team_in_database(db: Session, name: str, group_code: str, users: list
     db.commit()
     db.refresh(db_team)
     return db_team
+
+def create_issue_in_database(db: Session, title: str, description: str, points: int, author_id: int, group_id: int, team_id: int):
+    db_issue = Issue(title=title, description=description,
+                      points=points, status="created", author_id=author_id,
+                      group_id=group_id, team_id=team_id)
+    db.add(db_issue)
+    db.commit()
+    db.refresh(db_issue)
+    print("Issue created")
+    return db_issue

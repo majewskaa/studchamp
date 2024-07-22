@@ -31,21 +31,6 @@ export function SubjectPageHook(subject_id) {
         });
     }, []);
 
-    // const teamsList = [
-    //     {
-    //         id: '1',
-    //         name: 'Team 1'
-    //     },
-    //     {
-    //         id: '2',
-    //         name: 'Team 2'
-    //     },
-    //     {
-    //         id: '3',
-    //         name: 'Team 3'
-    //     }
-    // ];
-
     const taskList = [
         {
             id: '1',

@@ -29,6 +29,8 @@ class Group(Base):
     code = Column(String, unique=True)
     status = Column(String)
     users = relationship("User_in_group", back_populates="group")
+    teams = relationship("Team", back_populates="group")
+    issues = relationship("Issue", back_populates="group")
 
 class Team(Base):
     __tablename__='team'
@@ -37,7 +39,8 @@ class Team(Base):
     status = Column(String)
     users = relationship("User_in_team", back_populates="team")
     group_id = Column(Integer, ForeignKey('group.id'))
-    group = relationship("Group", backref="teams")
+    group = relationship("Group", back_populates="teams")
+    issues = relationship("Issue", back_populates="team")
 
 class User_in_team(Base):
     __tablename__='user_in_team'
@@ -54,8 +57,12 @@ class Issue(Base):
     title = Column(String)
     description = Column(String)
     points = Column(Integer)
-    status = Column(Boolean)
+    status = Column(String)
     author_id = Column(Integer, ForeignKey('user.id'))
+    group_id = Column(Integer, ForeignKey('group.id'))
+    team_id = Column(Integer, ForeignKey('team.id'))
+    group = relationship("Group", back_populates="issues")
+    team = relationship("Team", back_populates="issues")
     author = relationship("User", back_populates="issues")
     comments = relationship("Comment", back_populates="issue")
 

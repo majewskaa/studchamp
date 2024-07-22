@@ -36,3 +36,7 @@ export async function isAuthenticated() {
 //     }
     return true;
 }
+
+export async function getUserId() {
+    return 1;
+}

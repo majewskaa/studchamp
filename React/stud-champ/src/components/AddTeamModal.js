@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 function AddTeamModal({ isOpen, onClose, groupId }) {
     const [teamMembers, setTeamMembers] = useState(['']);
     const [responseMessage, setResponseMessage] = useState('');
-    const API_URL = process.env.REACT_APP_API_URL
+    const API_URL = process.env.REACT_APP_API_URL;
 
     const handleInputChange = (index, event) => {
         const newTeamMembers = [...teamMembers];
@@ -51,6 +51,7 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
             setResponseMessage(error.toString());
             console.error('Error:', error);
         });
+        window.location.reload();
     }
 
     const handleClose = () => {
