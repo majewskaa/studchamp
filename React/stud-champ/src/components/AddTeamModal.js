@@ -1,9 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function AddTeamModal({ isOpen, onClose, groupId }) {
     const [teamMembers, setTeamMembers] = useState(['']);
+    const [groupMembers, setGroupMembers] = useState([]);
     const [responseMessage, setResponseMessage] = useState('');
     const API_URL = process.env.REACT_APP_API_URL;
+
+    useEffect(() => {
+        const fetchGroupMembers = async () => {
+            try {
+                const response = await fetch(`${API_URL}/subject/${groupId}/members`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch group members');
+                }
+                const data = await response.json();
+                setGroupMembers(data.users);
+            } catch (error) {
+                console.error('Error fetching group members:', error);
+                setResponseMessage('Error fetching group members');
+            }
+        };
+
+        if (groupId) {
+            fetchGroupMembers();
+        }
+    }, [groupId]);
 
     const handleInputChange = (index, event) => {
         const newTeamMembers = [...teamMembers];
@@ -19,18 +40,18 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
         event.preventDefault();
         const formData = new FormData(event.target);
         const teamName = formData.get('team-name');
-        let teamMembers = [];
+        let selectedTeamMembers = [];
         for (let i = 0; i < teamMembers.length; i++) {
             const teamMember = formData.get(`team-member-${i}`);
-            if(teamMember.length > 0) {
-                teamMembers.push(teamMember);
+            if(teamMember && teamMember.length > 0) {
+                selectedTeamMembers.push(teamMember);
             }
         }
 
         const payload = {
             name: teamName,
             group_code: groupId,
-            users: teamMembers,
+            users: selectedTeamMembers,
         };
 
         fetch(API_URL + '/teams', {
@@ -68,15 +89,14 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
                 <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmmitCreateTeam}>
                     <input className='modal-box-form-content' name="team-name" type="text" placeholder="Team Name"/>
                     {teamMembers.map((member, index) => (
-                        <input
-                            key={index}
-                            className='modal-box-form-content'
-                            name={`team-member-${index}`}
-                            type="text"
-                            placeholder={`Team Member #${index + 1}`}
-                            value={member}
-                            onChange={(event) => handleInputChange(index, event)}
-                        />
+                        <div key={index}>
+                        <select name={`team-member-${index}`} value={member} onChange={(e) => handleInputChange(index, e)}>
+                            <option value="">Select Member</option>
+                            {groupMembers.map((groupMember) => (
+                                <option key={groupMember.id} value={groupMember.id}>{groupMember.login}</option>
+                            ))}
+                        </select>
+                    </div>
                     ))}
                     <div className="modal-box-form-footer">
                         <button type="button" onClick={handleClose}>Cancel</button>

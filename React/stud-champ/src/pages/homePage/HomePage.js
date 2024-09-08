@@ -10,7 +10,12 @@ import { Link } from 'react-router-dom';
 
 function HomePage() {
     const {
-        curent_user,
+        logout,
+        user,
+        userLogin,
+        setUserLogin,
+        password,
+        setPassword,
         subjectsList,
         tasksAssignedToUser,
         updatesList,
@@ -18,21 +23,25 @@ function HomePage() {
         setIsLoggedIn,
         openLogIn,
         openSignIn,
-        responseMessage,
+        registerResponseMessage,
+        loginResponseMessage,
         handleOpenLogIn,
         handleOpenSignIn,
         handleCloseLogIn,
         handleCloseSignIn,
         handleProfileButtonClicked,
         handleSubmmitSignIn,
-        handleSubmmitLogIn} = HomePageHook();
+        handleSubmmitLogIn,
+        handleAuthenticateWithUsos,
+        isUsosAuthenticated,
+    } = HomePageHook();
 
   return (
     <div>
         {
-            isLoggedIn ?
+            user ?
             <div className='loggedin-page'>
-                <Header setIsLoggedIn={setIsLoggedIn} handleProfileButtonClicked={handleProfileButtonClicked}/>
+                <Header setIsLoggedIn={setIsLoggedIn} handleProfileButtonClicked={handleProfileButtonClicked} logout={logout}/>
                 <div className="secton-container">
                     <div className="section">
                         <h2 className="title">Last Updates</h2>
@@ -50,11 +59,15 @@ function HomePage() {
                     </div>
                     <div className="section section-large">
                         <h2 className="title">Your Subjects</h2>
-                        {subjectsList.map((subject, index) => (
+                        {isUsosAuthenticated && <p>{subjectsList.map((subject, index) => (
                             <Link  className='card subject-card' key={index} to={`/subjects/${subject}`}>
                                 <h3 className='content'> {subject}</h3>
                             </Link>
-                        ))}
+                        ))}</p>}
+                        {!isUsosAuthenticated && <div className='button-content-container'>
+                        <Button variant="contained"  className="content" size="medium" onClick={handleAuthenticateWithUsos}>Authenticate with usos</Button>
+                        </div>
+                        }
                     </div>
                     <div className="section">
                         <h2 className="title">Assigned to You</h2>
@@ -67,7 +80,7 @@ function HomePage() {
                                     <Breadcrumb subject={task.subject.id} project={task.project} />
                                     <h3 className='content'>{task.name}</h3>
                                 </div>
-                                <img className='content avatar' src={curent_user.avatar} alt="person" />
+                                <img className='content avatar' src={user.avatar} alt="person" />
                             </div>
                         ))}
                     </div>
@@ -87,11 +100,11 @@ function HomePage() {
                 onClose={handleCloseLogIn}
                 >
                 <div className="login-modal-box">
-                    <h2 className='modal-box-header'>Log in</h2>
-                    {responseMessage && <p className="response-message">{responseMessage}</p>}
+                    <h2 className='modal-box-header'>Login</h2>
+                    {loginResponseMessage && <p className="response-message">{loginResponseMessage}</p>}
                     <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmmitLogIn}>
-                        <input  className='modal-box-form-content' name="email" type="email" placeholder="Email"/>
-                        <input className="modal-box-form-content" name="password" type="password" placeholder="Password" />
+                        <input  className='modal-box-form-content' name="login" type="login" placeholder="Login" onChange={(e) => setUserLogin(e.target.value)} required/>
+                        <input className="modal-box-form-content" name="password" type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value) } required />
                         <input className="modal-box-form-footer" type="submit" value="Log In"/>
                     </form>
                 </div>
@@ -102,9 +115,9 @@ function HomePage() {
                 >
                 <div className="signin-modal-box">
                     <h2 className='modal-box-header'>Sign in</h2>
-                    {responseMessage && <p className="response-message">{responseMessage}</p>}
+                    {registerResponseMessage && <p className="response-message">{registerResponseMessage}</p>}
                     <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmmitSignIn}>
-                        <input className='modal-box-form-content' name="email" type="email" placeholder="Email"/>
+                        <input className='modal-box-form-content' name="login" type="login" placeholder="Login"/>
                         <input className="modal-box-form-content" name="password"  type="password" placeholder="Password"/>
                         <input className="modal-box-form-content" name="repeat-password"  type="password" placeholder="Repeat Password"/>
                         <input className="modal-box-form-footer" type="submit" value="Sign In"/>

@@ -185,3 +185,16 @@ html, body {
     display: flex;
     justify-content: space-between;
 }
+
+.response-message {
+    color: red;
+    font-size: 1rem;
+    font-weight: bold;
+    font-style: italic;
+    margin: 0.5rem;
+}
+
+.button-content-container {
+    display: flex;
+    justify-content: center;
+}

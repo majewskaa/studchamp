@@ -4,7 +4,12 @@ import avatar from '../../resources/avatar.png';
 
 /**
  * @typedef {Object} HomePageHookResponse
- * @property {User} curent_user
+ * @property {function(): void} logout
+ * @property {User} user
+ * @property {string} userLogin
+ * @property {function(string): void} setUserLogin
+ * @property {string} password
+ * @property {function(string): void} setPassword
  * @property {Array<Subject>} subjectsList
  * @property {Array<Task>} tasksAssignedToUser
  * @property {Array<Update>} updatesList
@@ -12,24 +17,33 @@ import avatar from '../../resources/avatar.png';
  * @property {function(): void} setIsLoggedIn
  * @property {function(): void} openLogIn
  * @property {function(): void} openSignIn
- * @property {function(): void} responseMessage
+ * @property {function(): void} registerResponseMessage,
+ * @property {function(): void} loginResponseMessage,
  * @property {function(): void} handleOpenLogIn
  * @property {function(): void} handleOpenSignIn
  * @property {function(): void} handleCloseLogIn
  * @property {function(): void} handleCloseSignIn
  * @property {function(): void} handleProfileButtonClicked
  * @property {function(): void} handleSubmmitSignIn,
- * @property {function(): void} handleSubmmitLogIn
+ * @property {function(): void} handleSubmmitLogIn,
+ * @property {function(): void} handleAuthenticateWithUsos,
+ * @property {function(): void} isUsosAuthenticated,
  */
 
 /**
  * @returns {HomePageHookResponse}
  */
 export function HomePageHook() {
-    const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
+    const { login, user, logout } = useContext(AuthContext);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isUsosAuthenticated, setIsUsosAuthenticated] = useState(false);
+    const [userLogin, setUserLogin] = useState('');
+    const [password, setPassword] = useState('');
     const [openLogIn, setOpenLogIn] = useState(false);
     const [openSignIn, setOpenSignIn] = useState(false);
-    const [responseMessage, setResponseMessage] = useState('');
+    const [registerResponseMessage, setRegisterResponseMessage] = useState('');
+    const [loginResponseMessage, setLoginResponseMessage] = useState('');
+    const [generalResponseMessage, setGeneralResponseMessage] = useState('');
     const [subjectsList, setSubjectsList] = useState([]);
 
     const API_URL = process.env.REACT_APP_API_URL
@@ -42,11 +56,11 @@ export function HomePageHook() {
     };
     const handleCloseLogIn = () => {
         setOpenLogIn(false);
-        setResponseMessage('');
+        setLoginResponseMessage('');
     };
     const handleCloseSignIn = () => {
         setOpenSignIn(false);
-        setResponseMessage('');
+        setLoginResponseMessage('');
     };
     const handleProfileButtonClicked = () => {
         //
@@ -114,11 +128,6 @@ export function HomePageHook() {
     //     }
     // ];
 
-    const curent_user = {
-        id: 1,
-        avatar: avatar
-    }
-
     useEffect(() => {
         fetch(process.env.REACT_APP_API_URL + '/subjects', {
             method: 'GET',
@@ -128,13 +137,13 @@ export function HomePageHook() {
         })
         .then(response => response.json())
         .then(data => {
-            setResponseMessage(data.message);
+            setGeneralResponseMessage(data.message);
             if (data.success) {
                 setSubjectsList(data.subjects);
             }
         })
         .catch((error) => {
-            setResponseMessage(error.toString());
+            setGeneralResponseMessage(error.toString());
             console.error('Error:', error);
         });
     }, []);
@@ -170,47 +179,25 @@ export function HomePageHook() {
         }
     ];
 
-
-    const handleSubmmitLogIn = (event) => {
+    const handleSubmmitLogIn = async (event) => {
         event.preventDefault();
-
-        const formData = new FormData(event.target);
-        const email = formData.get('email');
-        const password = formData.get('password');
-
-        fetch(API_URL + '/login', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email,
-                password
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            setResponseMessage(data.message);
-            if (data.success) {
-            setIsLoggedIn(true);
+        const data = await login(userLogin, password);
+        setLoginResponseMessage(data.message);
+        if(data.success) {
             handleCloseLogIn();
-            }
-        })
-        .catch((error) => {
-            setResponseMessage(error);
-            console.error('Error:', error);
-        });
+        }
     }
+
     const handleSubmmitSignIn = (event) => {
         event.preventDefault();
 
         const formData = new FormData(event.target);
         const password = formData.get('password');
         const password2 = formData.get('repeat-password');
-        const email = formData.get('email');
+        const login = formData.get('login');
 
         if (password !== password2) {
-            setResponseMessage("Passwords do not match");
+            setRegisterResponseMessage("Passwords do not match");
             return;
         }
         fetch(API_URL + '/register', {
@@ -220,24 +207,43 @@ export function HomePageHook() {
         },
         body: JSON.stringify({
             password,
-            email
+            login
         })
         })
         .then(response => response.json())
         .then(data => {
-            setResponseMessage(data.message.text);
+            setRegisterResponseMessage(data.message.text);
             if (data.success) {
                 setIsLoggedIn(true);
                 handleCloseSignIn();
             }
         })
         .catch((error) => {
-            setResponseMessage(error);
+            setRegisterResponseMessage(error);
             console.error('Error:', error);
         });
     }
+
+    const handleAuthenticateWithUsos = async () => {
+        const response = await fetch(API_URL + '/oauth/usos', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            setIsUsosAuthenticated(true);
+        }
+    }
+
     return {
-        curent_user,
+        logout,
+        user,
+        userLogin,
+        setUserLogin,
+        password,
+        setPassword,
         subjectsList,
         tasksAssignedToUser,
         updatesList,
@@ -245,14 +251,17 @@ export function HomePageHook() {
         setIsLoggedIn,
         openLogIn,
         openSignIn,
-        responseMessage,
+        registerResponseMessage,
+        loginResponseMessage,
         handleOpenLogIn,
         handleOpenSignIn,
         handleCloseLogIn,
         handleCloseSignIn,
         handleProfileButtonClicked,
         handleSubmmitSignIn,
-        handleSubmmitLogIn
+        handleSubmmitLogIn,
+        handleAuthenticateWithUsos,
+        isUsosAuthenticated,
     }
 
 }

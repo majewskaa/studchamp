@@ -18,10 +18,51 @@ function ProjectPage() {
     const { isLoggedIn, setIsLoggedIn, userId } = useContext(AuthContext);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [projectDetails, setProjectDetails] = useState(null);
+    const [commits, setCommits] = useState([]);
+    const [isBindGitRepoModalOpen, setIsBindGitRepoModalOpen] = useState(false);
 
     const handleProfileButtonClicked = () => {
         //
     }
+
+    function BindGitRepoModal({ isOpen, onClose}) {
+        const handleSubmit = (event) => {
+          event.preventDefault();
+          const projectID = event.target.projectId.value;
+          fetch(`${process.env.REACT_APP_API_URL}/projects/${project_id}/${projectID}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            })
+            .then(response => response.json())
+            .then(data => {
+                setResponseMessage(data.message);
+                if (data.success) {
+                    onClose();
+                }
+            })
+            .catch((error) => {
+                setResponseMessage(error.toString());
+                console.error('Error:', error);
+            });
+
+          onClose(); // Close the modal after submission
+        };
+
+        if (!isOpen) return null;
+
+        return (
+          <div className="modal">
+            <form onSubmit={handleSubmit}>
+              <label htmlFor="projectId">Project ID:</label>
+              <input type="text" id="projectId" name="projectId" required />
+              <button type="submit">Submit</button>
+              <button onClick={onClose}>Close</button>
+            </form>
+          </div>
+        );
+      }
 
     useEffect(() => {
         fetch(`${process.env.REACT_APP_API_URL}/projects/${project_id}`, {
@@ -64,10 +105,32 @@ function ProjectPage() {
         });
     }, [subject_id, team_id]);
 
+    useEffect(() => {
+        if(projectDetails) {
+            fetch(process.env.REACT_APP_API_URL + '/commits/' + projectDetails.git_repo_link, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                setResponseMessage(data.message);
+                if (data.success) {
+                    setCommits(data.commits);
+                }
+            })
+            .catch((error) => {
+                setResponseMessage(error.toString());
+                console.error('Error:', error);
+            });
+        }
+    }, [projectDetails]);
 
+    console.log(commits);
 
     return (
-        <div> {projectDetails ? (
+        <div> {(projectDetails) ? (
             <div>
             <Header setIsLoggedIn={setIsLoggedIn} handleProfileButtonClicked={handleProfileButtonClicked}/>
             <div className="underheader">
@@ -87,30 +150,58 @@ function ProjectPage() {
                     <p>{projectDetails.description}</p>
                 </div>
                 <div className="project-info-buttons">
-                    {projectDetails.gitRepoLink ? (
-                        <a href={projectDetails.gitRepoLink} target="_blank" rel="noopener noreferrer">View Git Repo</a>
+                    {projectDetails.git_repo_link ? (
+                        <a href={projectDetails.git_repo_link} target="_blank" rel="noopener noreferrer">View Git Repo</a>
                     ) : (
-                        <button>Bind Git Repo</button>
+                        <>
+                        <button onClick={() => setIsBindGitRepoModalOpen(true)}>Bind Git Repo</button>
+                        <BindGitRepoModal
+                            isOpen={isBindGitRepoModalOpen}
+                            onClose={() => setIsBindGitRepoModalOpen(false)}
+                        />
+                        </>
                     )}
                     <button>Edit Project</button> {/* Placeholder for future implementation */}
                 </div>
             </div>
-            <div className="secton-container-tasks">
-                <div className="section section-large">
-                    <h2 className="title">Your Tasks</h2>
-                    {tasksList.map((task, index) => (
-                        <div className='task-container' key={index}>
-                        <span className='task-points'>{task.points}</span>
-                        <Link className='task-title' to={`/subjects/${subject_id}/teams/${team_id}/projects/${project_id}/tasks/${task.id}`}>
-                            <h3>{task.title}</h3>
-                        </Link>
-                        </div>
-                    ))}
-                    <button className="add-task-btn" onClick={() => setIsModalOpen(true)}>Add Task</button>
+            <div className="project-content-container">
+                <div className="secton-container-tasks">
+                    <div className="section section-large">
+                        <h2 className="title">Your Tasks</h2>
+                        {tasksList.map((task, index) => (
+                            <div className='task-container' key={index}>
+                            <span className='task-points'>{task.points}</span>
+                            <Link className='task-title' to={`/subjects/${subject_id}/teams/${team_id}/projects/${project_id}/tasks/${task.id}`}>
+                                <h3>{task.title}</h3>
+                            </Link>
+                            </div>
+                        ))}
+                        <button className="add-task-btn" onClick={() => setIsModalOpen(true)}>Add Task</button>
+                    </div>
+                <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} projectId={project_id} />
                 </div>
-            </div>
-            <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} projectId={project_id} />
-            </div>) : (<div/>)}
+                <div className="section-container-team-stats">
+                    <div className="section section-small">
+                        <h2 className="title">Git statistics</h2>
+                        <table className="team-stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Member e-mail</th>
+                                    <th>Commits</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {Object.entries(commits).map(([key, value], index) => (
+                            <tr key={index}>
+                                <td>{key}</td>
+                                <td>{value}</td>
+                            </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div> </div>) : (<div/>)}
             </div>
     );
 }

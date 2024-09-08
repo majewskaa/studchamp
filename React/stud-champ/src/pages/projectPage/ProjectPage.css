@@ -55,3 +55,38 @@
 .task-team-name {
     color: #00A6A6;
 }
+
+.project-task-container {
+    display: flex;
+    justify-content: space-between;
+    flex: 1;
+    width: 100%;
+}
+
+.project-content-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.section-container-tasks {
+    width: 100%;
+    flex: 1;
+}
+
+.section-container-team-stats {
+    flex: 1;
+}
+
+.team-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.team-stats-table th, .team-stats-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.team-stats-table th {
+    background-color: #f2f2f2;
+}

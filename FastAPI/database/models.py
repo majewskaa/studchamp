@@ -9,6 +9,9 @@ class User(Base):
     password = Column(String, unique=True)
     usos_access_token = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    usos_id = Column(Integer, unique=True)
     issues = relationship("Issue", back_populates="author")
     comments = relationship("Comment", back_populates="author")
     user_groups = relationship("User_in_group", back_populates="user")
@@ -52,6 +55,7 @@ class User_in_team(Base):
     is_active = Column(Boolean, default=True)
     team = relationship("Team", back_populates="users")
     user = relationship("User", backref="user_in_teams")
+    commits = Column(Integer, default=0)
 
 class Issue(Base):
     __tablename__ = 'issue'

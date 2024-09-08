@@ -1,5 +1,6 @@
 fastapi
 uvicorn
 oauth2
-bcrypt
 sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
