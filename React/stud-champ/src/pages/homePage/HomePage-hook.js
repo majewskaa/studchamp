@@ -28,6 +28,11 @@ import avatar from '../../resources/avatar.png';
  * @property {function(): void} handleSubmmitLogIn,
  * @property {function(): void} handleAuthenticateWithUsos,
  * @property {function(): void} isUsosAuthenticated,
+ * @property {function(): void} showPinDialog,
+ * @property {string} pin,
+ * @property {function(): void} handlePinSubmit,
+ * @property {function(): void} setShowPinDialog,
+ * @property {function(): void} setPin
  */
 
 /**
@@ -45,8 +50,12 @@ export function HomePageHook() {
     const [loginResponseMessage, setLoginResponseMessage] = useState('');
     const [generalResponseMessage, setGeneralResponseMessage] = useState('');
     const [subjectsList, setSubjectsList] = useState([]);
+    const [showPinDialog, setShowPinDialog] = useState(false);
+    const [pin, setPin] = useState('');
 
     const API_URL = process.env.REACT_APP_API_URL
+    const usosapi_base_url = 'https://apps.usos.pw.edu.pl/'
+    const authorize_url = usosapi_base_url + 'services/oauth/authorize'
 
     const handleOpenLogIn = () => {
         setOpenLogIn(true);
@@ -129,6 +138,9 @@ export function HomePageHook() {
     // ];
 
     useEffect(() => {
+        if (!isLoggedIn || !isUsosAuthenticated) {
+            return;
+        }
         fetch(process.env.REACT_APP_API_URL + '/subjects', {
             method: 'GET',
             headers: {
@@ -225,15 +237,43 @@ export function HomePageHook() {
     }
 
     const handleAuthenticateWithUsos = async () => {
-        const response = await fetch(API_URL + '/oauth/usos', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+        try {
+            const response = await fetch(API_URL + '/oauth/usos', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (data.success && data.url) {
+                window.open(data.url, '_blank');
+                setShowPinDialog(true);
+            } else {
+                console.error('Failed to get the URL for authentication');
             }
-        });
-        const data = await response.json();
-        if (data.success) {
-            setIsUsosAuthenticated(true);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    const handlePinSubmit = async () => {
+        try {
+            const response = await fetch(API_URL + '/oauth/usos/pin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ pin })
+            });
+            const data = await response.json();
+            if (data.success) {
+                console.log('PIN submitted successfully');
+                setShowPinDialog(false);
+            } else {
+                console.error('Failed to submit PIN');
+            }
+        } catch (error) {
+            console.error('Error:', error);
         }
     }
 
@@ -262,6 +302,11 @@ export function HomePageHook() {
         handleSubmmitLogIn,
         handleAuthenticateWithUsos,
         isUsosAuthenticated,
+        showPinDialog,
+        pin,
+        handlePinSubmit,
+        setShowPinDialog,
+        setPin
     }
 
 }

@@ -275,3 +275,18 @@ def count_commits_by_user(commits):
         else:
             commit_counts[email] = 1
     return commit_counts
+
+def write_usos_token(token, user_id):
+    try:
+        db = SessionLocal()
+        user = db.query(User).filter(User.id == user_id).first()
+        user.usos_token = token
+        db.commit()
+        db.refresh(user)
+        print("Usos token updated successfully")
+    except Exception as e:
+        db.close()
+        return {"success": False, "message": e}
+    finally:
+        db.close()
+    return {"success": True, "message": "Usos token updated successfully"}

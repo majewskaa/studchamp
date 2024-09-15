@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database.database import SessionLocal, engine
 import database.models as models
+import database.schemas as schemas
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 from fastapi.responses import RedirectResponse
@@ -15,8 +16,10 @@ from datetime import datetime
 from urllib.parse import parse_qsl
 import json
 from typing import Optional
-from utils import *
+from database.crud import *
 from database.get_objects import get_subject
+from fastapi import Form
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 origins = [
@@ -40,9 +43,6 @@ usosapi_base_url = 'https://apps.usos.pw.edu.pl/'
 consumer_key = 'kMh5GTUYZ2jqvYFH9zXL'
 consumer_secret = 'zFvZvE7xh3DMDGJ7NZggeUSvvaa7N8PFKFJK3uNe'
 
-access_token_key = 'Ct2MX9bwwe9B2BF2wrKZ'
-access_token_secret = 'gcZZjWTvfzaUkwbMAStUgkft8M3NjcPXHAG2QPg3'
-
 usosapi_base_url_secure = usosapi_base_url.replace("http://", "https://")
 request_token_url = usosapi_base_url_secure + 'services/oauth/request_token?scopes=studies|offline_access'
 authorize_url = usosapi_base_url + 'services/oauth/authorize'
@@ -51,9 +51,9 @@ access_token_url = usosapi_base_url_secure + 'services/oauth/access_token'
 consumer = oauth.Consumer(consumer_key, consumer_secret)
 
 def _read_token(content):
-        arr = {k.decode(): v.decode() for k, v in parse_qsl(content)}
-        print(f"Parsed content: {arr}")
-        return oauth.Token(arr['oauth_token'], arr['oauth_token_secret'])
+    arr = {k.decode(): v.decode() for k, v in parse_qsl(content)}
+    print(f"Parsed content: {arr}")
+    return oauth.Token(arr['oauth_token'], arr['oauth_token_secret'])
 
 class GroupBase(BaseModel):
     code: str
@@ -107,6 +107,11 @@ class RegisterProjectData(BaseModel):
 class GetSubjectsData(BaseModel):
     user_id: int
 
+class OauthData(BaseModel):
+    oauth_token: str
+    oauth_verifier: str
+    user_id: int
+
 def get_db():
     db = SessionLocal()
     try:
@@ -143,56 +148,95 @@ async def delete_group(group_id: int, db: db_dependency):
     return
 
 @app.get("/oauth/usos")
-def redirect_to_usos():
+def redirect_to_usos(db: Session = Depends(get_db)):
     # Step 1. Request Token
+    callback_url = "http://localhost:8000/oauth/usos/callback"
     client = oauth.Client(consumer)
     request_token_url = f"{usosapi_base_url_secure}services/oauth/request_token?scopes=studies|offline_access&oauth_callback=oob"
     resp, content = client.request(request_token_url, "GET")
     if resp['status'] != '200':
         raise Exception("Invalid response %s:\n%s" % (resp['status'], content))
 
-    request_token = _read_token(content)
-    # Step 2. Obtain authorization
-    print ("Go to the following link in your browser:")
-    print ("%s?oauth_token=%s" % (authorize_url, request_token.key))
-    print('\n')
-    oauth_verifier = input('What is the PIN code? ')
-    # Step 3. Access Token
-    request_token.set_verifier(oauth_verifier)
-    client = oauth.Client(consumer, request_token)
-    resp, content = client.request(access_token_url, "GET")
-    try:
-        access_token = _read_token(content)
-    except KeyError:
-        print( "Cound not retrieve Access Token (invalid PIN?).")
-        sys.exit(1)
-    client = oauth.Client(consumer, access_token)
-    resp, content = client.request(usosapi_base_url + "services/tt/student?start=" +
-        str(datetime.now().date()) + "&days=1", "GET")
-    resp2, content2 = client.request(usosapi_base_url + "services/groups/user?fields=course_name|group_number|course_is_currently_conducted", "GET")
-    if resp2['status'] != '200':
-        raise Exception(u"Invalid response %s.\n%s" % (resp2['status'], content2))
-    items = json.loads(content2)
-    print(items)
-    # Print today's activities.
-    # activities = sorted(items, key=lambda x: x['start_time'])
-    # if len(activities) > 0:
-    #     for item in activities:
-    #         print (u"%s - %s -- %s" % (item['start_time'][11:16], item['end_time'][11:16], item['name']['en']))
-    # else:
-      #  print (u"No activities today.")
+    request_token = dict(parse_qsl(content.decode("utf-8")))
 
-    if not access_token_key:
-        print('\n')
-        print ("*** You may want to hardcode these values, so you won't need to reauthorize ***")
-        print ("access_token_key = '%s'" % access_token.key)
-        print ("access_token_secret = '%s'" % access_token.secret)
+    # Step 2. Obtain authorization on FE
+
+    authorize_url_with_token = f"{authorize_url}?oauth_token={request_token['oauth_token']}"
+    return {"success" : True, "url": authorize_url_with_token}
+
+    # print ("Go to the following link in your browser:")
+    # print ("%s?oauth_token=%s" % (authorize_url, request_token.key))
+    # print('\n')
+    # oauth_verifier = input('What is the PIN code? ')
 
     # usos_auth_url = usosapi_base_url + "services/oauth/request_token?oauth_callback=http://localhost:8000/oauth/usos-callback"
     # https://apps.usos.pw.edu.pl/services/oauth/authorize?oauth_token=3sqgaFy9bxEY8MUFPaXM
     # return RedirectResponse(url=usos_auth_url)
 
-@app.get("/oauth/usos-callback")
+@app.get("/oauth/usos/step2")
+def redirect_to_usos_step2(oauth_data: OauthData):
+    oauth_data.request_token.set_verifier(oauth_data.oauth_verifier)
+    client = oauth.Client(consumer, oauth_data.request_token)
+    resp, content = client.request(access_token_url, "GET")
+    try:
+        access_token = dict(parse_qsl(content.decode("utf-8")))
+    except KeyError:
+        return {"success": False, "message": "Cound not retrieve Access Token (invalid PIN?)"}
+
+    resp = write_usos_token(access_token, oauth_data.user_id)
+    if(resp['success'] == False):
+        return resp
+    print("Access token: ", access_token)
+    return {"success": True}
+    # client = oauth.Client(consumer, access_token)
+    # resp, content = client.request(usosapi_base_url + "services/tt/student?start=" +
+    #     str(datetime.now().date()) + "&days=1", "GET")
+    # resp2, content2 = client.request(usosapi_base_url + "services/groups/user?fields=course_name|group_number|course_is_currently_conducted", "GET")
+    # if resp2['status'] != '200':
+    #     raise Exception(u"Invalid response %s.\n%s" % (resp2['status'], content2))
+    # items = json.loads(content2)
+    # print(items)
+
+
+@app.get("/oauth/usos/callback")
+def oauth_usos_callback(oauth_token: str, oauth_verifier: str):
+    html_content = f"""
+    <html>
+        <body>
+            <form action="/oauth/usos/pin" method="post">
+                <label for="pin">Enter PIN:</label>
+                <input type="text" id="pin" name="pin">
+                <input type="hidden" name="oauth_token" value="{oauth_token}">
+                <input type="hidden" name="oauth_verifier" value="{oauth_verifier}">
+                <input type="submit" value="Submit">
+            </form>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+@app.post("/oauth/usos/pin")
+def oauth_usos_pin(pin: str = Form(...), oauth_token: str = Form(...), oauth_verifier: str = Form(...), db: Session = Depends(get_db)):
+    request_token = oauth.Token(oauth_token, oauth_verifier)
+    request_token.set_verifier(pin)
+    client = oauth.Client(consumer, request_token)
+    resp, content = client.request(access_token_url, "GET")
+    access_token = dict(parse_qsl(content.decode("utf-8")))
+
+    if "oauth_token" not in access_token:
+        raise HTTPException(status_code=400, detail="Failed to obtain access token")
+
+    # Store the access token in the database
+    user = db.query(models.User).filter(models.User.oauth_token == oauth_token).first()
+    if user:
+        user.usos_access_token = {"key": access_token["oauth_token"], "secret": access_token["oauth_token_secret"]}
+        db.commit()
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"success": True, "message": "Access Token stored successfully"}
+
+@app.get("/oauth/usos-callback-2")
 async def handle_usos_callback(oauth_token: Optional[str] = None, oauth_verifier: Optional[str] = None):
     if oauth_token is None or oauth_verifier is None:
         raise HTTPException(status_code=400, detail="Missing oauth_token or oauth_verifier")
@@ -224,25 +268,16 @@ def is_authenticated(token: str = Depends(oauth2_scheme)):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return {"message": "Authenticated", "user_id": user_id}
+            return {"success": True, "is_authenticated": False}
+        return {"success": True, "is_authenticated": True, "user_id": user_id}
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    #return {"message": "Authenticated", "user_id": 123}
+        return {"success": True, "is_authenticated": False}
 
-@app.get("/is_usos_authenticated")
-def is_usos_authenticated(user: User):
+@app.get("/is_usos_authenticated", response_model=schemas.User)
+def is_usos_authenticated(user: schemas.User):
     print(user)
     # TODO
-    return {"message": "Authenticated"}
+    return
 
 @app.post("/register")
 def register(form_data: RegisterUserData):

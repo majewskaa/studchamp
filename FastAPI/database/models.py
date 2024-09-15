@@ -1,5 +1,5 @@
 from database.database import Base
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 
 class User(Base):
@@ -7,7 +7,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     login = Column(String, nullable=True)
     password = Column(String, unique=True)
-    usos_access_token = Column(String, nullable=True)
+    usos_access_token = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)

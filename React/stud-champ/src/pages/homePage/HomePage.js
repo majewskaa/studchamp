@@ -7,6 +7,7 @@ import { HomePageHook } from './HomePage-hook';
 import Breadcrumb from '../../components/Breadcrumb';
 import Header from '../../components/Header';
 import { Link } from 'react-router-dom';
+import TextField from '@material-ui/core/TextField';
 
 function HomePage() {
     const {
@@ -34,6 +35,11 @@ function HomePage() {
         handleSubmmitLogIn,
         handleAuthenticateWithUsos,
         isUsosAuthenticated,
+        showPinDialog,
+        pin,
+        handlePinSubmit,
+        setShowPinDialog,
+        setPin
     } = HomePageHook();
 
   return (
@@ -66,7 +72,22 @@ function HomePage() {
                         ))}</p>}
                         {!isUsosAuthenticated && <div className='button-content-container'>
                         <Button variant="contained"  className="content" size="medium" onClick={handleAuthenticateWithUsos}>Authenticate with usos</Button>
+                            <Modal
+                                open={showPinDialog}
+                                onClose={() => setShowPinDialog(false)}
+                            >
+                                <div>
+                                <h2>Enter PIN</h2>
+                                <TextField
+                                    label="PIN"
+                                    value={pin}
+                                    onChange={(e) => setPin(e.target.value)}
+                                />
+                                <Button variant="contained"  className="content" size="medium" onClick={handlePinSubmit}>Submit</Button>
+                                </div>
+                            </Modal>
                         </div>
+
                         }
                     </div>
                     <div className="section">
