@@ -56,15 +56,21 @@ def decode_access_token(token: str):
     except JWTError:
         return None
 
-def authenticate_user(email: str, password: str):
+def authenticate_user(login: str, password: str):
     db = SessionLocal()
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.login == login).first()
     db.close()
 
     if user and bcrypt.checkpw(password.encode('utf-8'), user.password):
         return {"user": user}
 
     return None
+
+def get_user(login: str):
+    db = SessionLocal()
+    user = db.query(User).filter(User.login == login).first()
+    db.close()
+    return user
 
 def create_user(user_data):
     try:

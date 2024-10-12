@@ -4,73 +4,37 @@ import avatar from '../../resources/avatar.png';
 
 /**
  * @typedef {Object} HomePageHookResponse
- * @property {function(): void} logout
- * @property {User} user
- * @property {string} userLogin
- * @property {function(string): void} setUserLogin
- * @property {string} password
- * @property {function(string): void} setPassword
- * @property {Array<Subject>} subjectsList
- * @property {Array<Task>} tasksAssignedToUser
- * @property {Array<Update>} updatesList
- * @property {function(): void} isLoggedIn
- * @property {function(): void} setIsLoggedIn
- * @property {function(): void} openLogIn
- * @property {function(): void} openSignIn
- * @property {function(): void} registerResponseMessage,
- * @property {function(): void} loginResponseMessage,
- * @property {function(): void} handleOpenLogIn
- * @property {function(): void} handleOpenSignIn
- * @property {function(): void} handleCloseLogIn
- * @property {function(): void} handleCloseSignIn
- * @property {function(): void} handleProfileButtonClicked
- * @property {function(): void} handleSubmmitSignIn,
- * @property {function(): void} handleSubmmitLogIn,
- * @property {function(): void} handleAuthenticateWithUsos,
- * @property {function(): void} isUsosAuthenticated,
- * @property {function(): void} showPinDialog,
  * @property {string} pin,
+ * @property {User} user,
+ * @property {Array<Update>} updatesList,
+ * @property {Array<Subject>} subjectsList,
+ * @property {Array<Task>} tasksAssignedToUser,
+ * @property {function(): void} setPin,
+ * @property {function(): void} logout
+ * @property {function(): void} setIsLoggedIn,
+ * @property {function(): void} showPinDialog,
  * @property {function(): void} handlePinSubmit,
  * @property {function(): void} setShowPinDialog,
- * @property {function(): void} setPin
+ * @property {function(): void} isUsosAuthenticated,
+ * @property {function(): void} handleProfileButtonClicked,
+ * @property {function(): void} handleAuthenticateWithUsos,
  */
 
 /**
  * @returns {HomePageHookResponse}
  */
 export function HomePageHook() {
-    const { login, user, logout } = useContext(AuthContext);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isUsosAuthenticated, setIsUsosAuthenticated] = useState(false);
-    const [userLogin, setUserLogin] = useState('');
-    const [password, setPassword] = useState('');
-    const [openLogIn, setOpenLogIn] = useState(false);
-    const [openSignIn, setOpenSignIn] = useState(false);
-    const [registerResponseMessage, setRegisterResponseMessage] = useState('');
-    const [loginResponseMessage, setLoginResponseMessage] = useState('');
     const [generalResponseMessage, setGeneralResponseMessage] = useState('');
     const [subjectsList, setSubjectsList] = useState([]);
     const [showPinDialog, setShowPinDialog] = useState(false);
     const [pin, setPin] = useState('');
+    const [oauthToken, setOauthToken] = useState('');
+    const [oauthTokenSecret, setOauthTokenSecret] = useState('');
 
-    const API_URL = process.env.REACT_APP_API_URL
-    const usosapi_base_url = 'https://apps.usos.pw.edu.pl/'
-    const authorize_url = usosapi_base_url + 'services/oauth/authorize'
+    const API_URL = process.env.REACT_APP_API_URL;
 
-    const handleOpenLogIn = () => {
-        setOpenLogIn(true);
-    }
-    const handleOpenSignIn = () => {
-        setOpenSignIn(true);
-    };
-    const handleCloseLogIn = () => {
-        setOpenLogIn(false);
-        setLoginResponseMessage('');
-    };
-    const handleCloseSignIn = () => {
-        setOpenSignIn(false);
-        setLoginResponseMessage('');
-    };
     const handleProfileButtonClicked = () => {
         //
     }
@@ -117,25 +81,6 @@ export function HomePageHook() {
             content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
         },
     ];
-
-    // const subjectsList = [
-    //     {
-    //         name: 'TKOM',
-    //         id: '1',
-    //         active: true,
-    //     },
-    //     ,
-    //     {
-    //         name: 'SAD',
-    //         id: '2',
-    //         active: true,
-    //     },
-    //     {
-    //         name: 'GKOM',
-    //         id: '3',
-    //         active: false,
-    //     }
-    // ];
 
     useEffect(() => {
         if (!isLoggedIn || !isUsosAuthenticated) {
@@ -191,51 +136,6 @@ export function HomePageHook() {
         }
     ];
 
-    const handleSubmmitLogIn = async (event) => {
-        event.preventDefault();
-        const data = await login(userLogin, password);
-        setLoginResponseMessage(data.message);
-        if(data.success) {
-            handleCloseLogIn();
-        }
-    }
-
-    const handleSubmmitSignIn = (event) => {
-        event.preventDefault();
-
-        const formData = new FormData(event.target);
-        const password = formData.get('password');
-        const password2 = formData.get('repeat-password');
-        const login = formData.get('login');
-
-        if (password !== password2) {
-            setRegisterResponseMessage("Passwords do not match");
-            return;
-        }
-        fetch(API_URL + '/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            password,
-            login
-        })
-        })
-        .then(response => response.json())
-        .then(data => {
-            setRegisterResponseMessage(data.message.text);
-            if (data.success) {
-                setIsLoggedIn(true);
-                handleCloseSignIn();
-            }
-        })
-        .catch((error) => {
-            setRegisterResponseMessage(error);
-            console.error('Error:', error);
-        });
-    }
-
     const handleAuthenticateWithUsos = async () => {
         try {
             const response = await fetch(API_URL + '/oauth/usos', {
@@ -246,6 +146,11 @@ export function HomePageHook() {
             });
             const data = await response.json();
             if (data.success && data.url) {
+
+                console.info('URL:', data);
+                console.info('oauth_token:', data.oauth_token );
+                setOauthToken(data.oauth_token);
+                setOauthTokenSecret(data.oauth_token_secret);
                 window.open(data.url, '_blank');
                 setShowPinDialog(true);
             } else {
@@ -256,18 +161,25 @@ export function HomePageHook() {
         }
     }
 
-    const handlePinSubmit = async () => {
+    const handlePinSubmit = async (event) => {
+        event.preventDefault();
+        console.info('user', user);
         try {
             const response = await fetch(API_URL + '/oauth/usos/pin', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: JSON.stringify({ pin })
+                body: new URLSearchParams({
+                    user_id: user.id,
+                    pin: pin,
+                    oauth_token: oauthToken,
+                    oauth_token_secret: oauthTokenSecret
+                })
             });
             const data = await response.json();
             if (data.success) {
-                console.log('PIN submitted successfully');
+                console.info('PIN submitted successfully');
                 setShowPinDialog(false);
             } else {
                 console.error('Failed to submit PIN');
@@ -278,35 +190,20 @@ export function HomePageHook() {
     }
 
     return {
-        logout,
+        pin,
         user,
-        userLogin,
-        setUserLogin,
-        password,
-        setPassword,
+        updatesList,
         subjectsList,
         tasksAssignedToUser,
-        updatesList,
-        isLoggedIn,
+        setPin,
+        logout,
         setIsLoggedIn,
-        openLogIn,
-        openSignIn,
-        registerResponseMessage,
-        loginResponseMessage,
-        handleOpenLogIn,
-        handleOpenSignIn,
-        handleCloseLogIn,
-        handleCloseSignIn,
-        handleProfileButtonClicked,
-        handleSubmmitSignIn,
-        handleSubmmitLogIn,
-        handleAuthenticateWithUsos,
-        isUsosAuthenticated,
         showPinDialog,
-        pin,
         handlePinSubmit,
         setShowPinDialog,
-        setPin
+        isUsosAuthenticated,
+        handleProfileButtonClicked,
+        handleAuthenticateWithUsos,
     }
 
 }

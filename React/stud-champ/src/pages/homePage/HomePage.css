@@ -68,6 +68,19 @@ html, body {
     background-color: white;
     border-radius: 10px;
 }
+
+.pin-modal-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 10px;
+    padding-left: 1rem;
+    padding-bottom: 1rem;
+    padding-right: 1rem;
+}
+
 .signin-modal-box {
     position: fixed;
     top: 50%;

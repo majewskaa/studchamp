@@ -1,4 +1,3 @@
-import logo from '../../resources/logo.png';
 import './HomePage.css';
 import Button from '@material-ui/core/Button';
 import React from 'react';
@@ -11,41 +10,24 @@ import TextField from '@material-ui/core/TextField';
 
 function HomePage() {
     const {
-        logout,
+        pin,
         user,
-        userLogin,
-        setUserLogin,
-        password,
-        setPassword,
+        updatesList,
         subjectsList,
         tasksAssignedToUser,
-        updatesList,
-        isLoggedIn,
+        setPin,
+        logout,
         setIsLoggedIn,
-        openLogIn,
-        openSignIn,
-        registerResponseMessage,
-        loginResponseMessage,
-        handleOpenLogIn,
-        handleOpenSignIn,
-        handleCloseLogIn,
-        handleCloseSignIn,
-        handleProfileButtonClicked,
-        handleSubmmitSignIn,
-        handleSubmmitLogIn,
-        handleAuthenticateWithUsos,
-        isUsosAuthenticated,
         showPinDialog,
-        pin,
         handlePinSubmit,
         setShowPinDialog,
-        setPin
+        isUsosAuthenticated,
+        handleProfileButtonClicked,
+        handleAuthenticateWithUsos,
     } = HomePageHook();
 
   return (
     <div>
-        {
-            user ?
             <div className='loggedin-page'>
                 <Header setIsLoggedIn={setIsLoggedIn} handleProfileButtonClicked={handleProfileButtonClicked} logout={logout}/>
                 <div className="secton-container">
@@ -76,7 +58,7 @@ function HomePage() {
                                 open={showPinDialog}
                                 onClose={() => setShowPinDialog(false)}
                             >
-                                <div>
+                                <div className='pin-modal-box'>
                                 <h2>Enter PIN</h2>
                                 <TextField
                                     label="PIN"
@@ -107,46 +89,6 @@ function HomePage() {
                     </div>
                 </div>
             </div>
-            :
-            <div>
-                <header className="header">
-                    <img src={logo} className="logo" alt="logo" />
-                    <div className="header-end">
-                        <Button variant="contained"  className="button" size="medium" onClick={handleOpenLogIn}>Log in</Button>
-                        <Button variant="contained"  className="button" size="medium" onClick={handleOpenSignIn}>Sign in</Button>
-                    </div>
-                </header>
-                <Modal
-                open={openLogIn}
-                onClose={handleCloseLogIn}
-                >
-                <div className="login-modal-box">
-                    <h2 className='modal-box-header'>Login</h2>
-                    {loginResponseMessage && <p className="response-message">{loginResponseMessage}</p>}
-                    <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmmitLogIn}>
-                        <input  className='modal-box-form-content' name="login" type="login" placeholder="Login" onChange={(e) => setUserLogin(e.target.value)} required/>
-                        <input className="modal-box-form-content" name="password" type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value) } required />
-                        <input className="modal-box-form-footer" type="submit" value="Log In"/>
-                    </form>
-                </div>
-                </Modal>
-                <Modal
-                open={openSignIn}
-                onClose={handleCloseSignIn}
-                >
-                <div className="signin-modal-box">
-                    <h2 className='modal-box-header'>Sign in</h2>
-                    {registerResponseMessage && <p className="response-message">{registerResponseMessage}</p>}
-                    <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmmitSignIn}>
-                        <input className='modal-box-form-content' name="login" type="login" placeholder="Login"/>
-                        <input className="modal-box-form-content" name="password"  type="password" placeholder="Password"/>
-                        <input className="modal-box-form-content" name="repeat-password"  type="password" placeholder="Repeat Password"/>
-                        <input className="modal-box-form-footer" type="submit" value="Sign In"/>
-                    </form>
-                </div>
-                </Modal>
-            </div>
-        }
     </div>
   );
 }

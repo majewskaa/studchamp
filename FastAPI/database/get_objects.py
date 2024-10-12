@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from database.models import User
+from database.schemas import UserInDB
 
 def get_subjects(db: Session, user_id: int):
     usos_access_token = db.query(User).filter(User.id == user_id).first().usos_access_token
