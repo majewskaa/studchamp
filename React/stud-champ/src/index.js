@@ -5,6 +5,7 @@ import HomePage from './pages/homePage/HomePage';
 import SubjectPage from './pages/subjectPage/SubjectPage';
 import ProjectPage from './pages/projectPage/ProjectPage';
 import TeamPage from './pages/teamPage/TeamPage';
+import ExternalHomePage from './pages/externalHomePage/ExternalHomePage';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './security/AuthProvider';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -15,10 +16,10 @@ ReactDOM.render(
         <AuthProvider>
             <Routes>
                 <Route path="/" element={<ExternalHomePage />} />
-                <PrivateRoute path="/home" element={<HomePage />} />
-                <PrivateRoute path="/subjects/:subject_id" element={<SubjectPage />} />
-                <PrivateRoute path="/subjects/:subject_id/teams/:team_id" element={<TeamPage />} />
-                <PrivateRoute path="/subjects/:subject_id/teams/:team_id/projects/:project_id" element={<ProjectPage />} />
+                <Route path="/home" element={<PrivateRoute element={<HomePage />} />} />
+                <Route path="/subjects/:subject_id" element={<PrivateRoute element={<SubjectPage />} />} />
+                <Route path="/subjects/:subject_id/teams/:team_id" element={<PrivateRoute element={<TeamPage />} />} />
+                <Route path="/subjects/:subject_id/teams/:team_id/projects/:project_id" element={<PrivateRoute element={<ProjectPage />} />} />
             </Routes>
         </AuthProvider>
     </Router>,

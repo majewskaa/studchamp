@@ -1,3 +1,8 @@
+import { useState } from 'react';
+import { useAuth } from '../../security/AuthProvider';
+
+
+const API_URL = process.env.REACT_APP_API_URL;
 /**
  * @typedef {Object} ExternalHomePageHookResponse
  * @property {function(): void} handleOpenLogIn,
@@ -12,6 +17,7 @@
  * @property {string} registerResponseMessage,
  * @property {function(string): void} setUserLogin,
  * @property {function(string): void} setPassword,
+ * @property {boolean} isLoggedIn
  */
 
 /**
@@ -25,6 +31,7 @@ export function ExternalHomePageHook() {
     const [registerResponseMessage, setRegisterResponseMessage] = useState('');
     const [userLogin, setUserLogin] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const handleOpenLogIn = () => {
         setOpenLogIn(true);
@@ -36,7 +43,7 @@ export function ExternalHomePageHook() {
 
     const handleSubmmitLogIn = async (event) => {
         event.preventDefault();
-        const data = await login(userLogin, password);
+        const data = await useAuth.login(userLogin, password);
         setLoginResponseMessage(data.message);
         if(data.success) {
             handleCloseLogIn();
@@ -102,5 +109,6 @@ export function ExternalHomePageHook() {
         registerResponseMessage,
         setUserLogin,
         setPassword,
+        isLoggedIn
     };
 }

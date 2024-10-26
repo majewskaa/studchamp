@@ -17,7 +17,7 @@ from urllib.parse import parse_qsl
 import json
 from typing import Optional, Dict
 from database.crud import *
-from database.get_objects import get_subject, get_user
+from database.crud import get_user
 from fastapi import Form
 from fastapi.responses import HTMLResponse
 

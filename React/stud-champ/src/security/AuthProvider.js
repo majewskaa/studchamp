@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkToken } from './usosAuthorisation';
 
 export const AuthContext = React.createContext();
 
@@ -19,6 +18,12 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const checkToken = (token) => {
+        // Implement token validation logic here
+        // For example, you can decode the token and check its expiration
+        return true; // Placeholder, replace with actual validation
+    };
+
     const login = async (userLogin, password) => {
         const response = await fetch(process.env.REACT_APP_API_URL + '/token', {
             method: 'POST',
@@ -32,13 +37,10 @@ export const AuthProvider = ({ children }) => {
         });
 
         const data = await response.json();
-        if (data.success) {
-            localStorage.setItem('token', data.token);
-            setUser({ token: data.token });
-            navigate('/');
-            return { "success": true, "message": data.message };
-        } else {
-            return { "success": false, "message": data.message };
+        if (data.access_token) {
+            localStorage.setItem('token', data.access_token);
+            setUser({ token: data.access_token });
+            navigate('/home');
         }
     };
 
@@ -54,3 +56,5 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+
+export const useAuth = () => useContext(AuthContext);

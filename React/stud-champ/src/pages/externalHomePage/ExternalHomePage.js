@@ -1,4 +1,8 @@
 import logo from '../../resources/logo.png';
+import './ExternalHomePage.css';
+import Button from '@material-ui/core/Button';
+import Modal from '@material-ui/core/Modal';
+import { ExternalHomePageHook } from './ExternalHomePage-hook';
 
 function ExternalHomePage() {
     const {
@@ -14,6 +18,7 @@ function ExternalHomePage() {
         registerResponseMessage,
         setUserLogin,
         setPassword,
+        isLoggedIn
     } = ExternalHomePageHook();
     return(
     <div>
