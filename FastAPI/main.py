@@ -178,7 +178,8 @@ def redirect_to_usos(db: Session = Depends(get_db)):
     # return RedirectResponse(url=usos_auth_url)
 
 @app.post("/oauth/usos/pin")
-def oauth_usos_pin(user_id: int, pin: str = Form(...), oauth_token: str = Form(...), oauth_token_secret: str = Form(...), db: Session = Depends(get_db)):
+def oauth_usos_pin(user_id: int = Form(...), pin: str = Form(...), oauth_token: str = Form(...), oauth_token_secret: str = Form(...), db: Session = Depends(get_db)):
+    print(user_id, pin, oauth_token, oauth_token_secret)
     request_token = oauth.Token(oauth_token, oauth_token_secret)
     request_token.set_verifier(pin)
     print("request_token", request_token)
@@ -219,10 +220,15 @@ def is_authenticated(token: str = Depends(oauth2_scheme)):
         return {"success": True, "is_authenticated": False}
 
 @app.get("/is_usos_authenticated", response_model=schemas.User)
-def is_usos_authenticated(user: schemas.User):
-    print(user)
-    # TODO
-    return
+def is_usos_authenticated(user_id: int = Form(...), user_token: str =Form(...), db: Session = Depends(get_db)):
+    print('checking if user is usos authenticated')
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not verify_access_token(user_token):
+        return {"success": False, "message": "Invalid token"}
+    if user:
+        if user.usos_access_token:
+            return {"success": True, "is_authenticated" : True, "message": "User is usos authenticated"}
+    return {"success": False, "message": "User not authenticated"}
 
 @app.post("/register")
 def register(form_data: RegisterUserData):
@@ -249,11 +255,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.login == form_data.login).first()
+    user = get_user(login=form_data.username)
     if not user or not verify_password(form_data.password, user.password):
         return {"success":False, "message": "Invalid credentials"}
     access_token = create_access_token(data={"sub": user.login})
-    return {"success":True, "access_token": access_token, "token_type": "bearer", "message": "Successfull login"}
+    return {"success":True, "access_token": access_token, "user_id": user.id, "token_type": "bearer", "message": "Successfull login"}
 
 @app.get("/users/me")
 def read_users_me(current_user: User = Depends(get_current_user)):

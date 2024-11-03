@@ -16,10 +16,10 @@ ReactDOM.render(
         <AuthProvider>
             <Routes>
                 <Route path="/" element={<ExternalHomePage />} />
-                <Route path="/home" element={<PrivateRoute element={<HomePage />} />} />
-                <Route path="/subjects/:subject_id" element={<PrivateRoute element={<SubjectPage />} />} />
-                <Route path="/subjects/:subject_id/teams/:team_id" element={<PrivateRoute element={<TeamPage />} />} />
-                <Route path="/subjects/:subject_id/teams/:team_id/projects/:project_id" element={<PrivateRoute element={<ProjectPage />} />} />
+                <Route path="/home/*" element={<HomePage />} />
+                <Route path="/subjects/:subject_id" element={<SubjectPage />} />
+                <Route path="/subjects/:subject_id/teams/:team_id" element={<TeamPage/>} />
+                <Route path="/subjects/:subject_id/teams/:team_id/projects/:project_id" element={<ProjectPage />} />
             </Routes>
         </AuthProvider>
     </Router>,

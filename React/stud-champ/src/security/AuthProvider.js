@@ -8,10 +8,13 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        console.log('AuthProvider.js: useEffect');
         const token = localStorage.getItem('token');
+        const user_id = localStorage.getItem('user_id');
         if (token) {
             if (checkToken(token)) {
-                setUser({ token });
+                console.log('AuthProvider.js: useEffect: token is valid');
+                setUser({ token, user_id });
             } else {
                 setUser(null);
             }
@@ -39,13 +42,16 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         if (data.access_token) {
             localStorage.setItem('token', data.access_token);
-            setUser({ token: data.access_token });
+            localStorage.setItem('user_id', data.user_id);
+            setUser({ token: data.access_token, user_id: data.user_id });
             navigate('/home');
+            return data;
         }
     };
 
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('user_id');
         setUser(null);
         navigate('/');
     };

@@ -7,6 +7,7 @@ import Breadcrumb from '../../components/Breadcrumb';
 import Header from '../../components/Header';
 import { Link } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
+import avatar from '../../resources/avatar.png';
 
 function HomePage() {
     const {
@@ -83,7 +84,7 @@ function HomePage() {
                                     <Breadcrumb subject={task.subject.id} project={task.project} />
                                     <h3 className='content'>{task.name}</h3>
                                 </div>
-                                <img className='content avatar' src={user.avatar} alt="person" />
+                                <img className='content avatar' src={avatar} alt="person" />
                             </div>
                         ))}
                     </div>

@@ -1,5 +1,5 @@
-import { AuthContext } from '../../security/AuthProvider';
-import { useContext, useState, useEffect } from 'react';
+import { useAuth } from '../../security/AuthProvider';
+import { useState, useEffect } from 'react';
 import avatar from '../../resources/avatar.png';
 
 /**
@@ -38,6 +38,8 @@ export function HomePageHook() {
     const handleProfileButtonClicked = () => {
         //
     }
+
+    const { user, login, logout } = useAuth();
 
     const updatesList = [
         {
@@ -83,7 +85,7 @@ export function HomePageHook() {
     ];
 
     useEffect(() => {
-        if (!isLoggedIn || !isUsosAuthenticated) {
+        if (!user || !isUsosAuthenticated) {
             return;
         }
         fetch(process.env.REACT_APP_API_URL + '/subjects', {
@@ -104,6 +106,34 @@ export function HomePageHook() {
             console.error('Error:', error);
         });
     }, []);
+
+    useEffect(() => {
+        if (!user) {
+            console.log('User is not logged in');
+            return;
+        }
+        fetch(process.env.REACT_APP_API_URL + '/is_usos_authenticated', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: user.user_id,
+                user_token: user.token
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            setGeneralResponseMessage(data.message);
+            if (data.success) {
+                setIsUsosAuthenticated(true);
+            }
+        })
+        .catch((error) => {
+            setGeneralResponseMessage(error.toString());
+            console.error('Error:', error);
+        });
+    }, [user]);
 
     const tasksAssignedToUser = [
         {
@@ -163,7 +193,6 @@ export function HomePageHook() {
 
     const handlePinSubmit = async (event) => {
         event.preventDefault();
-        console.info('user', user);
         try {
             const response = await fetch(API_URL + '/oauth/usos/pin', {
                 method: 'POST',
@@ -171,7 +200,7 @@ export function HomePageHook() {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: new URLSearchParams({
-                    user_id: user.id,
+                    user_id: user.user_id,
                     pin: pin,
                     oauth_token: oauthToken,
                     oauth_token_secret: oauthTokenSecret

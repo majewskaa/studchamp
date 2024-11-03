@@ -33,6 +33,8 @@ export function ExternalHomePageHook() {
     const [password, setPassword] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+    const { login } = useAuth();
+
     const handleOpenLogIn = () => {
         setOpenLogIn(true);
     }
@@ -43,7 +45,7 @@ export function ExternalHomePageHook() {
 
     const handleSubmmitLogIn = async (event) => {
         event.preventDefault();
-        const data = await useAuth.login(userLogin, password);
+        const data = await login(userLogin, password);
         setLoginResponseMessage(data.message);
         if(data.success) {
             handleCloseLogIn();
