@@ -219,15 +219,15 @@ def is_authenticated(token: str = Depends(oauth2_scheme)):
     except JWTError:
         return {"success": True, "is_authenticated": False}
 
-@app.get("/is_usos_authenticated", response_model=schemas.User)
-def is_usos_authenticated(user_id: int = Form(...), user_token: str =Form(...), db: Session = Depends(get_db)):
+@app.post("/is_usos_authenticated")
+def is_usos_authenticated(user_id: str = Form(...), user_token: str =Form(...), db: Session = Depends(get_db)):
     print('checking if user is usos authenticated')
     user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not verify_access_token(user_token):
+    if verify_access_token(user_token) is None:
         return {"success": False, "message": "Invalid token"}
     if user:
-        if user.usos_access_token:
-            return {"success": True, "is_authenticated" : True, "message": "User is usos authenticated"}
+        if user.usos_access_token is not None:
+            return {"success": True, "message": "User is usos authenticated"}
     return {"success": False, "message": "User not authenticated"}
 
 @app.post("/register")
@@ -306,17 +306,23 @@ def filter_active_courses(data):
 
     return ids
 
-@app.get("/subjects")
-def get_subjects():
+@app.get("/subjects/{user_id}/{token}")
+def get_subjects(user_id: int, token: str, db: Session = Depends(get_db)):
     # if not auth.jwt_token or token != auth.jwt_token:
     #     raise HTTPException(
     #         status_code=status.HTTP_401_UNAUTHORIZED,
     #         detail="Invalid authentication credentials",
     #         headers={"WWW-Authenticate": "Bearer"},
     #     )
-
-    access_token_key = 'Ct2MX9bwwe9B2BF2wrKZ'
-    access_token_secret = 'gcZZjWTvfzaUkwbMAStUgkft8M3NjcPXHAG2QPg3'
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not verify_access_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    if user.usos_access_token is None:
+        return {"success": False, "message": "User not authenticated"}
+    access_token_key = user.usos_access_token['key']
+    access_token_secret = user.usos_access_token['secret']
 
     access_token = oauth.Token(access_token_key, access_token_secret)
     client = oauth.Client(consumer,  access_token)

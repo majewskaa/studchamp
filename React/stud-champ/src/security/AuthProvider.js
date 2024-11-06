@@ -8,23 +8,32 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log('AuthProvider.js: useEffect');
         const token = localStorage.getItem('token');
         const user_id = localStorage.getItem('user_id');
         if (token) {
             if (checkToken(token)) {
-                console.log('AuthProvider.js: useEffect: token is valid');
                 setUser({ token, user_id });
             } else {
                 setUser(null);
+                navigate('/');
             }
         }
     }, []);
 
     const checkToken = (token) => {
-        // Implement token validation logic here
-        // For example, you can decode the token and check its expiration
-        return true; // Placeholder, replace with actual validation
+        fetch(process.env.REACT_APP_API_URL + '/token/check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + token
+            }
+        }).then(response => {
+            if (response.status === 200) {
+                return true;
+            } else {
+                return false;
+            }
+        });
     };
 
     const login = async (userLogin, password) => {

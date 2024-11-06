@@ -88,7 +88,7 @@ export function HomePageHook() {
         if (!user || !isUsosAuthenticated) {
             return;
         }
-        fetch(process.env.REACT_APP_API_URL + '/subjects', {
+        fetch(process.env.REACT_APP_API_URL + '/subjects/' + user.user_id + '/' + user.token, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -105,19 +105,18 @@ export function HomePageHook() {
             setGeneralResponseMessage(error.toString());
             console.error('Error:', error);
         });
-    }, []);
+    }, [isUsosAuthenticated, user]);
 
     useEffect(() => {
         if (!user) {
-            console.log('User is not logged in');
             return;
         }
         fetch(process.env.REACT_APP_API_URL + '/is_usos_authenticated', {
-            method: 'GET',
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
+            body: new URLSearchParams({
                 user_id: user.user_id,
                 user_token: user.token
             })
