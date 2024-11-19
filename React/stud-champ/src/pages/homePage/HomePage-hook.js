@@ -84,28 +84,25 @@ export function HomePageHook() {
         },
     ];
 
-    useEffect(() => {
+    useEffect(async () => {
         if (!user || !isUsosAuthenticated) {
             return;
         }
-        fetch(process.env.REACT_APP_API_URL + '/subjects/' + user.user_id + '/' + user.token, {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/subjects/' + user.user_id, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user.token}`
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            setGeneralResponseMessage(data.message);
-            if (data.success) {
-                setSubjectsList(data.subjects);
-            }
-        })
-        .catch((error) => {
-            setGeneralResponseMessage(error.toString());
-            console.error('Error:', error);
         });
-    }, [isUsosAuthenticated, user]);
+        const data = await response.json();
+        setGeneralResponseMessage(data.message);
+        if (data.success) {
+            setSubjectsList(data.subjects);
+        } else {
+            console.error('Failed to fetch subjects');
+        }
+    } , [user, isUsosAuthenticated]);
 
     useEffect(() => {
         if (!user) {

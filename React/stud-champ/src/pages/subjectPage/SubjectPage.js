@@ -4,7 +4,8 @@ import Header from '../../components/Header';
 import { SubjectPageHook } from './SubjectPage-hook';
 import coinImage from '../../resources/gold-coin.svg';
 import { Link } from 'react-router-dom';
-import AddTeamModal from '../../components/AddTeamModal';
+import AddTeamModal from '../../components/AddTeamModal/AddTeamModal';
+import Button from '@material-ui/core/Button';
 
 import './SubjectPage.css';
 
@@ -43,7 +44,7 @@ function SubjectPage() {
                             <h3 className='content'> {team.name}</h3>
                         </Link>
                     ))}
-                    <button className="add-team-btn" onClick={() => setIsModalOpen(true)}>Add Team</button>
+                    <Button variant="contained" className="add-team-btn" size="medium" onClick={() => setIsModalOpen(true)}>Add Team</Button>
                 </div>
                 <div className="section section-large">
                     <h2 className="title">Colaboration Tasks</h2>

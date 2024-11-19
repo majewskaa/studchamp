@@ -55,6 +55,8 @@ export const AuthProvider = ({ children }) => {
             setUser({ token: data.access_token, user_id: data.user_id });
             navigate('/home');
             return data;
+        } else {
+            return data;
         }
     };
 

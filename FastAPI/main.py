@@ -19,7 +19,7 @@ from typing import Optional, Dict
 from database.crud import *
 from database.crud import get_user
 from fastapi import Form
-from fastapi.responses import HTMLResponse
+from objects.mappers import map_to_return_users
 
 app = FastAPI()
 origins = [
@@ -61,6 +61,13 @@ class GroupBase(BaseModel):
 
 class GroupModel(GroupBase):
     id: int
+
+    class Config:
+        orm_mode = True
+
+class UserModel(BaseModel):
+    id: int
+    login: str
 
     class Config:
         orm_mode = True
@@ -127,6 +134,24 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 models.Base.metadata.create_all(bind=engine)
 
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        login: str = payload.get("sub")
+        if login is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = get_user(login=login)
+    if user is None:
+        raise credentials_exception
+    return user
+
 @app.post("/groups/", response_model=GroupModel)
 async def create_group(group: GroupBase, db: db_dependency):
     db_group = models.Group(**group.dict())
@@ -140,6 +165,12 @@ async def read_groups(db: db_dependency, skip: int = 0, limit: int = 100):
     groups = db.query(models.Group).offset(skip).limit(limit).all()
     print(groups)
     return groups
+
+@app.get("/users_in_group/{group_code}")
+async def read_users_in_group(db: db_dependency, group_code: str, current_user: models.User = Depends(get_current_user)):
+    users = get_user_by_group_code(group_code)
+    users_to_return = map_to_return_users(users)
+    return users_to_return
 
 @app.delete("/groups/{group_id}", status_code=204)
 async def delete_group(group_id: int, db: db_dependency):
@@ -235,24 +266,6 @@ def register(form_data: RegisterUserData):
     response = create_user(form_data)
     return response
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        login: str = payload.get("sub")
-        if login is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    user = get_user(login=login)
-    if user is None:
-        raise credentials_exception
-    return user
-
 @app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = get_user(login=form_data.username)
@@ -306,21 +319,7 @@ def filter_active_courses(data):
 
     return ids
 
-@app.get("/subjects/{user_id}/{token}")
-def get_subjects(user_id: int, token: str, db: Session = Depends(get_db)):
-    # if not auth.jwt_token or token != auth.jwt_token:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_401_UNAUTHORIZED,
-    #         detail="Invalid authentication credentials",
-    #         headers={"WWW-Authenticate": "Bearer"},
-    #     )
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if not verify_access_token(token):
-        raise HTTPException(status_code=401, detail="Invalid token")
-    if user.usos_access_token is None:
-        return {"success": False, "message": "User not authenticated"}
+def update_subjects(user):
     access_token_key = user.usos_access_token['key']
     access_token_secret = user.usos_access_token['secret']
 
@@ -336,9 +335,20 @@ def get_subjects(user_id: int, token: str, db: Session = Depends(get_db)):
     items = json.loads(content2)
     # print(items)
     active_courses_ids = filter_active_courses(items)
-    add_courses(active_courses_ids)
+    add_courses(active_courses_ids, user.id)
     print(active_courses_ids)
-    return {"success": True, "message": "Success", "subjects" : active_courses_ids}
+
+@app.get("/subjects/{user_id}")
+def get_subjects(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.usos_access_token is None:
+        return {"success": False, "message": "User not authenticated"}
+    update_subjects(user)
+    codes = fetch_active_courses_codes(user_id)
+
+    return {"success": True, "message": "Success", "subjects" : codes}
 
 @app.get("/subject/{subject_code}/members")
 def get_subject(subject_code: str = Path(..., description="Subject CODE")):

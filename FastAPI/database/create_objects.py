@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database.models import User, Group, Team, Issue, Project, User_in_team
+from database.models import User, Group, Team, Issue, Project, User_in_team, User_in_group
 
 def create_user_in_database(db: Session, login: str, password: str):
     db_user = User(login=login, password=password)
@@ -14,6 +14,33 @@ def create_group_in_database(db: Session, code: str):
     db.commit()
     db.refresh(db_group)
     return db_group
+
+def add_user_to_group_in_database(db: Session, user_id: int, group_id: str):
+    create_user_in_group_in_database(db, user_id, group_id)
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise Exception("User not found")
+    db_group = db.query(Group).filter(Group.id == group_id).first()
+    if not db_group:
+        raise Exception("Group not found")
+    db_group.users.append(db_user)
+
+def create_user_in_group_in_database(db: Session, user_id: int, group_id: str):
+    # Fetch the User instance
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise Exception("User not found")
+
+    # Fetch the Group instance
+    db_group = db.query(Group).filter(Group.id == group_id).first()
+    if not db_group:
+        raise Exception("Group not found")
+
+    # Create UserInGroup instance
+    db_user_in_group = User_in_group(user_id=db_user.id, group_id=db_group.id, is_active=True, score=0, user=db_user, group=db_group)
+    db.add(db_user_in_group)
+    db.commit()
+    return db_user_in_group
 
 def create_team_in_database(db: Session, name: str, group_code: str, users: list):
     # Fetch the Group instance

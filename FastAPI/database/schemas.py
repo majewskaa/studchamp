@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict
 
 class UserBase(BaseModel):
+    id: Optional[int] = None
     login: Optional[str] = None
     usos_access_token: Optional[Dict[str, str]] = None
     is_active: Optional[bool] = True

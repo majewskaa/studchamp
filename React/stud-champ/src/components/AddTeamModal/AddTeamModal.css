@@ -1,0 +1,9 @@
+.modal-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 23rem;
+    background-color: white;
+    border-radius: 10px;
+}

@@ -91,19 +91,22 @@ html, body {
     border-radius: 10px;
 }
 .modal-box-header {
+    padding: 1rem;
     font-size: 1.5em;
     font-weight: bold;
     margin-bottom: 1vmin;
-    margin-left: 2vmin;
 }
 .modal-box-form {
-    padding: 2vmin;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
+    min-width: 30rem;
+    min-height: 10rem;
     .modal-box-form-content {
         font-size: 1.5em;
         font-weight: bold;
-        margin-bottom: 1vmin;
+        margin-bottom: 1rem;
+        width: 100%;
     }
     .modal-box-form-footer {
         font-size: 1em;

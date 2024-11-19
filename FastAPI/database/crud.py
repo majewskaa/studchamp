@@ -79,6 +79,14 @@ def get_user(login: str):
     db.close()
     return user
 
+def get_user_by_group_code(group_code: str):
+    db = SessionLocal()
+    group = db.query(Group).filter(Group.code == group_code).first()
+    user_ids = db.query(User_in_group).filter(User_in_group.group_id == group.id).all()
+    users = db.query(User).filter(User.id.in_([user_id.user_id for user_id in user_ids])).all()
+    db.close()
+    return users
+
 def create_user(user_data):
     try:
         db = SessionLocal()
@@ -106,21 +114,42 @@ def create_team(team_data):
         db.close()
     return {"success": True, "message": "Team created successfully"}
 
-def add_courses(courses_codes):
+def add_courses(courses_codes, user_id):
+
     print("Adding courses: " + str(courses_codes))
+    db = SessionLocal()
+    groups = db.query(Group).all()
     for code in courses_codes:
+        if any(group.code == code for group in groups):
+            print("Course " + code + " already exists")
+            continue
         try:
-            db = SessionLocal()
-            create_group_in_database(db, code=code)
+            group = create_group_in_database(db, code=code)
+            add_user_to_group_in_database(db, user_id, group.id)
             print("Course " + code + " added")
         except Exception as e:
-            db.close()
             print(e)
-            return {"success": False, "message": e}
 
     db.close()
     print("Courses added successfully")
     return {"success": True, "message": "Course added successfully"}
+
+def update_user_in_group_for_user(user_id):
+    db = SessionLocal()
+    groups = db.query(Group).all()
+    users_in_groups = db.query(User_in_group).where(User_in_group.user_id == user_id).all()
+    user_group_ids = {user_in_group.group_id for user_in_group in users_in_groups if user_in_group.user_id == user_id}
+
+    for group in groups:
+        if group.id in user_group_ids:
+            print("User already in group " + group.code)
+        else:
+            try:
+                create_user_in_group_in_database(db, user_id=user_id, group_id=group.id)
+                print("User added to group " + group.code)
+            except Exception as e:
+                print(e)
+    db.close()
 
 def fetch_teams(subject_code: str):
     try:
@@ -135,8 +164,6 @@ def fetch_teams(subject_code: str):
         print("Teams fetched successfully")
     return {"success": True, "teams": teams}
 
-
-
 def fetch_tasks(subject_code: str, team_id: int):
     try:
         db = SessionLocal()
@@ -149,6 +176,15 @@ def fetch_tasks(subject_code: str, team_id: int):
         db.close()
         print("Tasks fetched successfully")
     return {"success": True, "tasks": tasks}
+
+def fetch_active_courses_codes(user_id):
+    db = SessionLocal()
+    user_in_groups = db.query(User_in_group).filter(User_in_group.user_id == user_id).all()
+    groups = db.query(Group).all()
+    active_courses_codes = [group.code for group in groups if any((user_in_group.group_id == group.id and group.status == 'active')  for user_in_group in user_in_groups)]
+    db.close()
+    print("Active courses codes fetched successfully")
+    return active_courses_codes
 
 def create_task(task_data):
     try:
