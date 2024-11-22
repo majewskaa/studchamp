@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Modal from '@material-ui/core/Modal';
 import Button from '@material-ui/core/Button';
 import { useAuth } from '../../security/AuthProvider';
+import Dropdown from '../Dropdown/Dropdown';
+import ChoosenList from '../ChoosenList/ChoosenList';
+import useClickOutside from '../../hooks/useClickOutside';
 
 import './AddTeamModal.css';
 
 function AddTeamModal({ isOpen, onClose, groupId }) {
     const { user } = useAuth();
-    const [teamMembers, setTeamMembers] = useState(['']);
+    const [teamMembers, setTeamMembers] = useState([]);
     const [groupMembers, setGroupMembers] = useState([]);
     const [responseMessage, setResponseMessage] = useState('');
     const [groupMembersToSelect, setGroupMembersToSelect] = useState([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownContainerRef = useRef(null);
     const API_URL = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
@@ -20,7 +25,7 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}` // Include the token in the Authorization header
+                        //'Authorization': `Bearer ${user.token}`
                     }
                 });
                 if (!response.ok) {
@@ -39,33 +44,20 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
         if (groupId) {
             fetchGroupMembers();
         }
-    }, [groupId, user.token]);
+    }, [groupId]);
 
-    const handleInputChange = (index, event) => {
-        const newTeamMembers = [...teamMembers];
-        newTeamMembers[index] = event.target.value;
-        console.log(newTeamMembers);
-        setTeamMembers(newTeamMembers);
-        const selectedIds = newTeamMembers.map((member) => parseInt(member));
-        const newGroupMembers = groupMembers.filter((groupMember) => !selectedIds.includes(groupMember.id));
-        console.log(newGroupMembers);
-        setGroupMembersToSelect(newGroupMembers);
-
-        if (index === teamMembers.length - 1 && event.target.value !== '') {
-            setTeamMembers([...newTeamMembers, '']);
-        }
-    };
-
-    const handleSubmmitCreateTeam = (event) => {
+    const handleSubmmitCreateTeam = async (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const teamName = formData.get('team-name');
         let selectedTeamMembers = [];
-        for (let i = 0; i < teamMembers.length; i++) {
-            const teamMember = formData.get(`team-member-${i}`);
-            if(teamMember && teamMember.length > 0) {
-                selectedTeamMembers.push(teamMember);
-            }
+        for (const teamMember of teamMembers) {
+            selectedTeamMembers.push(teamMember.id);
+        }
+        selectedTeamMembers.push(parseInt(localStorage.getItem('user_id')));
+        if (teamName.length === 0) {
+            setResponseMessage('Team name is required');
+            return;
         }
 
         const payload = {
@@ -74,32 +66,38 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
             users: selectedTeamMembers,
         };
 
-        fetch(API_URL + '/teams', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-        })
-        .then(response => response.json())
-        .then(data => {
-            setResponseMessage(data.message);
+        try {
+            const response = await fetch(`${API_URL}/teams`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    //'Authorization': `Bearer ${user.token}`
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await response.json();
+
             if (data.success) {
-                onClose();
+                handleClose();
+                window.location.reload();
+            } else {
+                setResponseMessage(data.message);
             }
-        })
-        .catch((error) => {
-            setResponseMessage(error.toString());
-            console.error('Error:', error);
-        });
-        window.location.reload();
-    }
+        } catch (error) {
+            setResponseMessage('Error creating team');
+        }
+    };
 
     const handleClose = () => {
         setGroupMembersToSelect(groupMembers);
-        setTeamMembers(['']);
+        setResponseMessage('');
+        setTeamMembers([]);
         onClose();
     };
+
+    useClickOutside(dropdownContainerRef, () => {
+        setIsDropdownOpen(false);
+    });
 
     return (
             <Modal
@@ -107,22 +105,29 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
             onClose={handleClose}
             >
             <div className='modal-box'>
-                <h2 className="modal-box-header">Add new Team</h2>
+                <h2 className="modal-box-header">Add a New Team</h2>
                 <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmmitCreateTeam}>
-                    <input className='modal-box-form-content' name="team-name" type="text" placeholder="Team Name"/>
-                    {teamMembers.map((member, index) => (
-                        <div key={index}>
-                        <select className='modal-box-form-content' name={`team-member-${index}`} value={member} onChange={(e) => handleInputChange(index, e)}>
-                            <option value="">Select Member</option>
-                            {groupMembers.map((groupMember) => (
-                                <option key={groupMember.id} value={groupMember.id}>{groupMember.login}</option>
-                            ))}
-                        </select>
-                    </div>
-                    ))}
-                    <div className="modal-box-form-footer">
+                    <input className='add-team-modal-box-form-content' name="team-name" type="text" placeholder="Team Name"/>
+                        <div className="dropdown-container" ref={dropdownContainerRef}>
+                            <h4 >
+                            <Dropdown
+                                choice={groupMembersToSelect}
+                                isDropdownOpen={isDropdownOpen}
+                                setIsDropdownOpen={setIsDropdownOpen}
+                                selected={teamMembers}
+                                setSelected={setTeamMembers}
+                            />
+                            <ChoosenList
+                                selected={teamMembers}
+                                setSelected={setTeamMembers}
+                            />
+                            </h4>
+                        </div>
+
+                    <div className="add-team-modal-box-form-footer">
+                        {responseMessage && <div className="add-team-modal-footer-element-message">{responseMessage}</div>}
                         <Button variant="contained" size="medium" onClick={handleClose}>Cancel</Button>
-                        <Button variant="contained" size="medium" type="submit" >Add</Button>
+                        <Button variant="containedPrimary" size="medium" type="submit">Add</Button>
                     </div>
                 </form>
             </div>

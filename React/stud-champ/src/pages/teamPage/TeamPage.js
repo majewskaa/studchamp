@@ -7,6 +7,7 @@ import { AuthContext } from '../../security/AuthProvider';
 import coinImage from '../../resources/gold-coin.svg';
 import { Link } from 'react-router-dom';
 import AddProjectModal from '../../components/AddProjectModal';
+import Button from '@material-ui/core/Button';
 
 function TeamPage() {
     let { subject_id, team_id } = useParams();
@@ -14,8 +15,10 @@ function TeamPage() {
 
     const [projectsList, setProjectsList] = useState([]);
     const [responseMessage, setResponseMessage] = useState('');
+    const [teamMembers, setTeamMembers] = useState([]);
     const { isLoggedIn, setIsLoggedIn, userId } = useContext(AuthContext);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
+    const [isEditTeamModalOpen, setIsEditTeamModalOpen] = useState(false);
 
     const handleProfileButtonClicked = () => {
         //
@@ -39,6 +42,24 @@ function TeamPage() {
             setResponseMessage(error.toString());
             console.error('Error:', error);
         });
+        fetch(process.env.REACT_APP_API_URL + '/team/' + team_id + '/members', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            setResponseMessage(data.message);
+            if (data.success) {
+                setTeamMembers(data.users);
+            }
+        })
+        .catch((error) => {
+            setResponseMessage(error.toString());
+            console.error('Error:', error);
+        }
+        );
     }, [subject_id, team_id]);
 
     return (
@@ -55,20 +76,40 @@ function TeamPage() {
                     </div>
                 </div>
             </div>
+            <div className='teams-page-section-large'>
             <div className="secton-container-projects">
                 <div className="section section-large">
                     <h2 className="title">Projects</h2>
                     {projectsList.map((project, index) => (
                         <div className='project-container' key={index}>
-                        <Link className='project-title' to={`/subjects/${subject_id}/teams/${team_id}/projects/${project.id}`}>
-                            <h3>{project.name}</h3>
-                        </Link>
+                            <Link className='project-title' to={`/subjects/${subject_id}/teams/${team_id}/projects/${project.id}`}>
+                                <h3>{project.name}</h3>
+                            </Link>
                         </div>
                     ))}
-                    <button className="add-project-btn" onClick={() => setIsModalOpen(true)}>Add Project</button>
+                    <div className='button-container'>
+                        <Button  variant="contained" size="medium" onClick={() => setIsAddProjectModalOpen(true)}>Add Project</Button>
+                    </div>
                 </div>
+                <AddProjectModal isOpen={isAddProjectModalOpen} onClose={() => setIsAddProjectModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} />
             </div>
-            <AddProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} />
+            <div className="secton-container-team-members">
+                <div className="section section-large">
+                    <h2 className="title">Team Members</h2>
+                    {teamMembers.map((teamMember, index) => (
+                        <div className='project-container' key={index}>
+                            <Link className='project-title' to={``}>
+                                <h3>{teamMember.login}</h3>
+                            </Link>
+                        </div>
+                    ))}
+                    <div className='button-container'>
+                        <Button  variant="contained" size="medium" onClick={() => setIsEditTeamModalOpen(true)}>Edit</Button>
+                    </div>
+                </div>
+                <EditTeamModal isOpen={isEditTeamModalOpen} onClose={() => setIsEditTeamModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} />
+            </div>
+            </div>
         </div>
     );
 }

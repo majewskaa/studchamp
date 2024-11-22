@@ -7,6 +7,7 @@ import requests
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
+from objects.mappers import map_to_return_users
 
 url = 'https://gitlab-stud.elka.pw.edu.pl/api/v4/groups'
 
@@ -95,7 +96,7 @@ def create_user(user_data):
         print('dups')
     except Exception as e:
         db.close()
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
 
@@ -109,7 +110,7 @@ def create_team(team_data):
     except Exception as e:
         db.close()
         print(e)
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "message": "Team created successfully"}
@@ -158,7 +159,7 @@ def fetch_teams(subject_code: str):
         teams = db.query(Team).filter(Team.group_id == group.id).all()
     except Exception as e:
         db.close()
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
         print("Teams fetched successfully")
@@ -171,7 +172,7 @@ def fetch_tasks(subject_code: str, team_id: int):
         tasks = db.query(Issue).filter(Issue.group_id == group.id).filter(Issue.team_id == team_id).all()
     except Exception as e:
         db.close()
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
         print("Tasks fetched successfully")
@@ -195,7 +196,7 @@ def create_task(task_data):
                                   group_id=group.id, team_id=task_data.team_id, project_id=task_data.project_id)
     except Exception as e:
         db.close()
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
         print("Task created successfully")
@@ -213,7 +214,7 @@ def create_project(project_data):
     except Exception as e:
         db.close()
         print(e)
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "message": "Project created successfully"}
@@ -227,7 +228,7 @@ def fetch_projects(subject_code: str, team_id: int):
     except Exception as e:
         db.close()
         print(e)
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "projects": projects}
@@ -240,7 +241,7 @@ def fetch_project(project_id: int):
     except Exception as e:
         db.close()
         print(e)
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "project": project}
@@ -259,7 +260,7 @@ def fetch_subject_members(subject_code: str):
     except Exception as e:
         db.close()
         print(e)
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "users": users}
@@ -280,11 +281,28 @@ def fetch_team(team_id: int):
         print("Team fetched successfully", team)
     except Exception as e:
         db.close()
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "team": team}
 
+def fetch_team_members(team_id: int):
+    try:
+        db = SessionLocal()
+        users_in_team = db.query(User_in_team).filter(User_in_team.team_id == team_id).all()
+        users = []
+        for user_in_team in users_in_team:
+            user = db.query(User).filter(User.id == user_in_team.user_id).first()
+            if(user):
+                users.append(user)
+        print("Users fetched successfully: ", users)
+    except Exception as e:
+        db.close()
+        return {"success": False, "message": e.__str__()}
+    finally:
+        db.close()
+    users = map_to_return_users(users)
+    return {"success": True, "users": users}
 
 def put_git_id(project_id, git_project_id):
     try:
@@ -296,7 +314,7 @@ def put_git_id(project_id, git_project_id):
         print("Project updated successfully")
     except Exception as e:
         db.close()
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "message": "Project updated successfully"}
@@ -335,7 +353,7 @@ def write_usos_token(token, user_id):
         print("Usos token updated successfully")
     except Exception as e:
         db.close()
-        return {"success": False, "message": e}
+        return {"success": False, "message": e.__str__()}
     finally:
         db.close()
     return {"success": True, "message": "Usos token updated successfully"}

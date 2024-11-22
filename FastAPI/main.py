@@ -167,7 +167,7 @@ async def read_groups(db: db_dependency, skip: int = 0, limit: int = 100):
     return groups
 
 @app.get("/users_in_group/{group_code}")
-async def read_users_in_group(db: db_dependency, group_code: str, current_user: models.User = Depends(get_current_user)):
+async def read_users_in_group(db: db_dependency, group_code: str):
     users = get_user_by_group_code(group_code)
     users_to_return = map_to_return_users(users)
     return users_to_return
@@ -237,18 +237,6 @@ def oauth_usos_pin(user_id: int = Form(...), pin: str = Form(...), oauth_token: 
 def logout():
     auth.jwt_token = None
     return {"message": "Logged out"}
-
-@app.get("/is_authenticated")
-def is_authenticated(token: str = Depends(oauth2_scheme)):
-    print(token)
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            return {"success": True, "is_authenticated": False}
-        return {"success": True, "is_authenticated": True, "user_id": user_id}
-    except JWTError:
-        return {"success": True, "is_authenticated": False}
 
 @app.post("/is_usos_authenticated")
 def is_usos_authenticated(user_id: str = Form(...), user_token: str =Form(...), db: Session = Depends(get_db)):
@@ -358,6 +346,7 @@ def get_subject(subject_code: str = Path(..., description="Subject CODE")):
 @app.post("/teams")
 def register_team(form_data: RegisterTeamData):
     response = create_team(form_data)
+    print(response)
     return response
 
 @app.get("/teams/{subject_id}")
@@ -368,6 +357,11 @@ def get_teams(subject_id: str = Path(..., description="Subject ID")):
 @app.get("/team/{team_id}")
 def get_team(team_id: str = Path(..., description="Team ID")):
     response = fetch_team(team_id)
+    return response
+
+@app.get("/team/{team_id}/members")
+def get_team(team_id: str = Path(..., description="Team ID")):
+    response = fetch_team_members(team_id)
     return response
 
 @app.post("/tasks")

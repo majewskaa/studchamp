@@ -4,6 +4,41 @@
     left: 50%;
     transform: translate(-50%, -50%);
     min-width: 23rem;
-    background-color: white;
+    background-color: #AEAAAA;
     border-radius: 10px;
+}
+
+.add-team-modal-box-form-content {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    padding: 0.7rem;
+    border: 3px solid #979797;
+}
+
+.add-team-modal-box-form-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.add-team-modal-footer-element {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.add-team-modal-footer-element-message {
+    display: flex;
+    align-self: end;
+    color: red;
+    font-size: 1.2em;
+}
+
+.dropdown-container {
+    padding: 0;
+    width: 30rem;
 }

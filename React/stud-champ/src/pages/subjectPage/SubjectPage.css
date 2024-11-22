@@ -67,3 +67,12 @@
     padding: 20px;
     border-radius: 5px;
 }
+
+.subjects-page-section-large {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    gap: 4rem;
+    align-items: center;
+    margin-top: 1rem;
+}

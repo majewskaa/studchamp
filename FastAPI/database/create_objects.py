@@ -43,26 +43,30 @@ def create_user_in_group_in_database(db: Session, user_id: int, group_id: str):
     return db_user_in_group
 
 def create_team_in_database(db: Session, name: str, group_code: str, users: list):
-    # Fetch the Group instance
     db_group = db.query(Group).filter(Group.code == group_code).first()
     if not db_group:
         raise Exception("Group not found")
 
-    # Fetch User instances based on user_ids
     db_users = db.query(User).filter(User.id.in_(users)).all()
     if len(db_users) != len(users):
         raise Exception("One or more users not found")
 
-    # Create Team instance
+    teams = db.query(Team).filter(Team.group_id == db_group.id).all()
+    if any([team.name == name for team in teams]):
+        raise Exception("Team with this name already exists")
+
     db_team = Team(name=name, status='active', group_id=db_group.id)
     db.add(db_team)
     db.commit()
     db.refresh(db_team)
 
-    # Assuming UserInTeam is the association model between User and Team
+    users = []
     for user in db_users:
         user_in_team = User_in_team(user_id=user.id, team_id=db_team.id)
         db.add(user_in_team)
+        users.append(user_in_team)
+    db_team.users = users
+    db.refresh(db_team)
 
     db.commit()
     return db_team

@@ -36,35 +36,40 @@ function SubjectPage() {
                     </div>
                 </div>
             </div>
-            <div className="secton-container">
-                <div className="section section-large">
-                    <h2 className="title">Teams</h2>
-                    {teamsList.map((team, index) => (
-                        <Link  className='card team-card' key={index} to={`/subjects/${subject_id}/teams/${team.id}`}>
-                            <h3 className='content'> {team.name}</h3>
-                        </Link>
-                    ))}
-                    <Button variant="contained" className="add-team-btn" size="medium" onClick={() => setIsModalOpen(true)}>Add Team</Button>
+            <div className="subjects-page-section-large">
+                <div className="secton-container">
+                    <div className="section section-large">
+                        <h2 className="title">Teams</h2>
+                        {teamsList.map((team, index) => (
+                            <Link  className='card team-card' key={index} to={`/subjects/${subject_id}/teams/${team.id}`}>
+                                <h3 className='content'> {team.name}</h3>
+                            </Link>
+                        ))}
+                        <Button variant="contained" className="add-team-btn" size="medium" onClick={() => setIsModalOpen(true)}>Add Team</Button>
+                    </div>
                 </div>
+                <div className="secton-container">
                 <div className="section section-large">
-                    <h2 className="title">Colaboration Tasks</h2>
-                    {taskList.map((task, index) => (
-                        <div className='card task-card' key={index}>
-                            <div className='content points'>
-                                {task.points}
-                            </div>
-                            <div className="task-card">
-                                <div className="task-name-container">
-                                    <span>{task.name}</span>
+                        <h2 className="title">Colaboration Tasks</h2>
+                        {taskList.map((task, index) => (
+                            <div className='card task-card' key={index}>
+                                <div className='content points'>
+                                    {task.points}
                                 </div>
-                                <div className="task-team-name-container">
-                                    <span>{task.team.name}</span>
+                                <div className="task-card">
+                                    <div className="task-name-container">
+                                        <span>{task.name}</span>
+                                    </div>
+                                    <div className="task-team-name-container">
+                                        <span>{task.team.name}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
+
             <AddTeamModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} groupId={subject_id} />
         </div>
     );

@@ -1,6 +1,6 @@
 const API_URL = process.env.REACT_APP_API_URL
 const USOS_LOGIN_ENDPOINT = `${API_URL}/oauth/usos`
-const USOS_AUTHENTICATED_ENDPOINT = `${API_URL}/is_authenticated`
+const USOS_AUTHENTICATED_ENDPOINT = `${API_URL}/is__usos_authenticated`
 
 export async function checkToken() {
     const jwt_token = localStorage.getItem('jwt_token');
