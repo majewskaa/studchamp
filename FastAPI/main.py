@@ -111,6 +111,11 @@ class RegisterProjectData(BaseModel):
     subject_code: str
     team_id: int
 
+class EditProjectData(BaseModel):
+    name: str
+    description: str
+    git_repo_id: int
+
 class GetSubjectsData(BaseModel):
     user_id: int
 
@@ -374,14 +379,19 @@ def register_task(form_data: RegisterTaskData):
     response = create_task(form_data)
     return response
 
-@app.get("/tasks/{subject_id}/{team_id}")
-def get_teams(subject_id: str = Path(..., description="Subject ID"), team_id: str = Path(..., description="Team ID")):
-    response = fetch_tasks(subject_id, team_id)
+@app.get("/project_page_data/{project_id}")
+def get_project_page_data(project_id: str = Path(..., description="Project ID")):
+    response = fetch_project_page_data(project_id)
     return response
 
 @app.post("/projects")
 def register_project(form_data: RegisterProjectData):
     response = create_project(form_data)
+    return response
+
+@app.post("/projects/{project_id}")
+def edit_project(project_id, form_data: EditProjectData):
+    response = edit_project_in_db(form_data, project_id)
     return response
 
 @app.get("/projects/{subject_id}/{team_id}")
@@ -396,7 +406,6 @@ def get_project(project_id: int):
 
 @app.patch("/projects/{project_id}/{git_project_id}")
 def patch_project_with_git_id(project_id: int, git_project_id: int):
-    print("dupe", project_id)
     response = put_git_id(project_id, git_project_id)
     return response
 

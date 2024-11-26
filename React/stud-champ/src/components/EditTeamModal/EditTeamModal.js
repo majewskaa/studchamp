@@ -73,14 +73,13 @@ function EditTeamModal({ isOpen, onClose, teamId, setTeam }) {
             if (data.success === false) {
                 setResponseMessage('Failed to edit team');
             } else {
-                console.info('Team edited:', data.team);
                 setTeam(data.team);
                 setFetchTrigger(!fetchTrigger);
                 handleClose();
             }
         } catch (error) {
             console.error('Error editing team:', error);
-            setResponseMessage('Error editing team');
+            setResponseMessage(error.toString());
         }
     };
 

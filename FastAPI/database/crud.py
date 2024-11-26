@@ -93,7 +93,6 @@ def create_user(user_data):
         db = SessionLocal()
         hashed_password = get_password_hash(user_data.password)
         create_user_in_database(db, login=user_data.login, password=hashed_password)
-        print('dups')
     except Exception as e:
         db.close()
         return {"success": False, "message": e.__str__()}
@@ -165,11 +164,10 @@ def fetch_teams(subject_code: str):
         print("Teams fetched successfully")
     return {"success": True, "teams": teams}
 
-def fetch_tasks(subject_code: str, team_id: int):
+def fetch_tasks(project_id: int):
     try:
         db = SessionLocal()
-        group = db.query(Group).filter(Group.code == subject_code).first()
-        tasks = db.query(Issue).filter(Issue.group_id == group.id).filter(Issue.team_id == team_id).all()
+        tasks = db.query(Issue).filter(Issue.project_id == project_id).all()
     except Exception as e:
         db.close()
         return {"success": False, "message": e.__str__()}
@@ -177,6 +175,18 @@ def fetch_tasks(subject_code: str, team_id: int):
         db.close()
         print("Tasks fetched successfully")
     return {"success": True, "tasks": tasks}
+
+def fetch_project_page_data(project_id: int):
+    url_response = fetch_url(project_id)
+    if not url_response['success']:
+        return url_response
+
+    tasks_response = fetch_tasks(project_id)
+    if not tasks_response['success']:
+        return tasks_response
+
+    return {"success": True, "url": url_response['url'], "tasks": tasks_response['tasks']}
+
 
 def fetch_active_courses_codes(user_id):
     db = SessionLocal()
@@ -218,6 +228,23 @@ def create_project(project_data):
     finally:
         db.close()
     return {"success": True, "message": "Project created successfully"}
+
+def edit_project_in_db(project_data, project_id):
+    try:
+        db = SessionLocal()
+        project = db.query(Project).filter(Project.id == project_id).first()
+        project.name = project_data.name
+        project.description = project_data.description
+        project.git_repo_link = project_data.git_repo_id
+        db.commit()
+        db.refresh(project)
+        print("Project updated successfully")
+    except Exception as e:
+        db.close()
+        return {"success": False, "message": e.__str__()}
+    finally:
+        db.close()
+    return {"success": True, "message": "Project updated successfully"}
 
 def fetch_projects(subject_code: str, team_id: int):
     try:
@@ -329,9 +356,24 @@ def fetch_commits(project_id):
         print("Failed to fetch commits:", response.text)
 
     resp = count_commits_by_user(response.json())
-    print("dupa11")
     print(resp)
     return {"success": True, "commits": resp}
+
+def fetch_git_project_id(project_id):
+    db = SessionLocal()
+    project = db.query(Project).filter(Project.id == project_id).first()
+    db.close()
+    return project.git_repo_link
+
+def  fetch_url(project_id):
+    git_project_id = fetch_git_project_id(project_id)
+    url = f'https://gitlab-stud.elka.pw.edu.pl/api/v4/projects/{git_project_id}'
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        print("URL fetched successfully!")
+        return {"success": True, "url": response.json()['web_url']}
+    else:
+        return {"success": False, "message": response.text}
 
 def count_commits_by_user(commits):
     commit_counts = {}

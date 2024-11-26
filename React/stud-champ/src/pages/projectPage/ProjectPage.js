@@ -23,6 +23,7 @@ function ProjectPage() {
     const [commits, setCommits] = useState([]);
     const [isBindGitRepoModalOpen, setIsBindGitRepoModalOpen] = useState(false);
     const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
+    const [gitRepoLink, setGitRepoLink] = useState('');
 
     function BindGitRepoModal({ isOpen, onClose}) {
         const handleSubmit = (event) => {
@@ -85,7 +86,7 @@ function ProjectPage() {
     }, [project_id]);
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_URL + '/tasks/' + subject_id + '/' + team_id, {
+        fetch(process.env.REACT_APP_API_URL + '/project_page_data/' + project_id, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -95,14 +96,19 @@ function ProjectPage() {
         .then(data => {
             setResponseMessage(data.message);
             if (data.success) {
+                console.info('Data:', data);
                 setTasksList(data.tasks);
+                setGitRepoLink(data.url);
+            }
+            else {
+                console.error('Error:', data.message);
             }
         })
         .catch((error) => {
             setResponseMessage(error.toString());
             console.error('Error:', error);
         });
-    }, [subject_id, team_id]);
+    }, [project_id]);
 
     useEffect(() => {
         if(projectDetails) {
@@ -126,8 +132,6 @@ function ProjectPage() {
         }
     }, [projectDetails]);
 
-    console.log(commits);
-
     return (
         <div> {(projectDetails) ? (
             <div>
@@ -150,7 +154,7 @@ function ProjectPage() {
                 </div>
                 <div className="project-info-buttons">
                     {projectDetails.git_repo_link ? (
-                        <a href={projectDetails.git_repo_link} target="_blank" rel="noopener noreferrer">View Git Repo</a>
+                        <a href={gitRepoLink} target="_blank" rel="noopener noreferrer">View Git Repo</a>
                     ) : (
                         <>
                         <Button variant="contained" size="medium" onClick={() => setIsBindGitRepoModalOpen(true)}>Bind Git Repo</Button>

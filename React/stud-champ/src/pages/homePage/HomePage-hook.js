@@ -172,9 +172,6 @@ export function HomePageHook() {
             });
             const data = await response.json();
             if (data.success && data.url) {
-
-                console.info('URL:', data);
-                console.info('oauth_token:', data.oauth_token );
                 setOauthToken(data.oauth_token);
                 setOauthTokenSecret(data.oauth_token_secret);
                 window.open(data.url, '_blank');
