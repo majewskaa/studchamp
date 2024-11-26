@@ -46,7 +46,7 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
         }
     }, [groupId]);
 
-    const handleSubmmitCreateTeam = async (event) => {
+    const handleSubmitCreateTeam = async (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const teamName = formData.get('team-name');
@@ -106,7 +106,7 @@ function AddTeamModal({ isOpen, onClose, groupId }) {
             >
             <div className='modal-box'>
                 <h2 className="modal-box-header">Add a New Team</h2>
-                <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmmitCreateTeam}>
+                <form noValidate autoComplete="off" className='modal-box-form' onSubmit={handleSubmitCreateTeam}>
                     <input className='add-team-modal-box-form-content' name="team-name" type="text" placeholder="Team Name"/>
                         <div className="dropdown-container" ref={dropdownContainerRef}>
                             <h4 >

@@ -6,6 +6,8 @@ import { AuthContext } from '../../security/AuthProvider';
 import coinImage from '../../resources/gold-coin.svg';
 import { Link } from 'react-router-dom';
 import AddTaskModal from '../../components/AddTaskModal';
+import Button from '@material-ui/core/Button';
+import EditProjectModal from '../../components/EditProjectModal/EditProjectModal';
 
 import './ProjectPage.css';
 
@@ -20,10 +22,7 @@ function ProjectPage() {
     const [projectDetails, setProjectDetails] = useState(null);
     const [commits, setCommits] = useState([]);
     const [isBindGitRepoModalOpen, setIsBindGitRepoModalOpen] = useState(false);
-
-    const handleProfileButtonClicked = () => {
-        //
-    }
+    const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
 
     function BindGitRepoModal({ isOpen, onClose}) {
         const handleSubmit = (event) => {
@@ -132,7 +131,7 @@ function ProjectPage() {
     return (
         <div> {(projectDetails) ? (
             <div>
-            <Header setIsLoggedIn={setIsLoggedIn} handleProfileButtonClicked={handleProfileButtonClicked}/>
+            <Header setIsLoggedIn={setIsLoggedIn}/>
             <div className="underheader">
                 <div className='subject-outline'>
                     <Breadcrumb subject={subject_id} team={team_id}/>
@@ -154,18 +153,19 @@ function ProjectPage() {
                         <a href={projectDetails.git_repo_link} target="_blank" rel="noopener noreferrer">View Git Repo</a>
                     ) : (
                         <>
-                        <button onClick={() => setIsBindGitRepoModalOpen(true)}>Bind Git Repo</button>
+                        <Button variant="contained" size="medium" onClick={() => setIsBindGitRepoModalOpen(true)}>Bind Git Repo</Button>
                         <BindGitRepoModal
                             isOpen={isBindGitRepoModalOpen}
                             onClose={() => setIsBindGitRepoModalOpen(false)}
                         />
                         </>
                     )}
-                    <button>Edit Project</button> {/* Placeholder for future implementation */}
+                    <Button variant="contained" size="medium" onClick={() => setIsEditProjectModalOpen(true)}>Edit Project</Button> {}
+                    <EditProjectModal isOpen={isEditProjectModalOpen} onClose={() => setIsEditProjectModalOpen(false)} projectDetails={projectDetails} setProjectDetails={setProjectDetails} />
                 </div>
             </div>
             <div className="project-content-container">
-                <div className="secton-container-tasks">
+                <div className="section-container">
                     <div className="section section-large">
                         <h2 className="title">Your Tasks</h2>
                         {tasksList.map((task, index) => (
@@ -176,12 +176,12 @@ function ProjectPage() {
                             </Link>
                             </div>
                         ))}
-                        <button className="add-task-btn" onClick={() => setIsModalOpen(true)}>Add Task</button>
+                        <Button variant="contained" size="medium" className="add-task-btn" onClick={() => setIsModalOpen(true)}>Add Task</Button>
                     </div>
                 <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} projectId={project_id} />
                 </div>
-                <div className="section-container-team-stats">
-                    <div className="section section-small">
+                <div className="section-container">
+                    <div className="section section-large">
                         <h2 className="title">Git statistics</h2>
                         <table className="team-stats-table">
                             <thead>

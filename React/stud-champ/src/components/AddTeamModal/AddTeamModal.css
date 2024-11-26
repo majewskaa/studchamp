@@ -19,9 +19,10 @@
 .add-team-modal-box-form-footer {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: end;
     align-items: center;
     margin-top: 2rem;
+    gap: 1rem;
 }
 
 .add-team-modal-footer-element {

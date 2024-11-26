@@ -357,3 +357,52 @@ def write_usos_token(token, user_id):
     finally:
         db.close()
     return {"success": True, "message": "Usos token updated successfully"}
+
+def fetch_edit_team_modal_data(team_id):
+    try:
+        db = SessionLocal()
+        team = db.query(Team).filter(Team.id == team_id).first()
+        team_name = team.name
+        user_in_team_team_members = db.query(User_in_team).filter(User_in_team.team_id == team_id).all()
+        team_members = db.query(User).filter(User.id.in_([user_in_team.user_id for user_in_team in user_in_team_team_members])).all()
+        group = db.query(Group).filter(Group.id == team.group_id).first()
+        user_in_group_group_members = db.query(User_in_group).filter(User_in_group.group_id == group.id).all()
+        group_members = db.query(User).filter(User.id.in_([user_in_group.user_id for user_in_group in user_in_group_group_members])).all()
+        print("Data fetched successfully", team)
+    except Exception as e:
+        db.close()
+        return {"success": False, "message": e.__str__()}
+    finally:
+        db.close()
+        team_members = map_to_return_users(team_members)
+        group_members = map_to_return_users(group_members)
+    return {"success": True, "team_name": team_name, "team_members": team_members, "group_members": group_members}
+
+def update_team(team_data):
+    users = []
+    try:
+        db = SessionLocal()
+        team = db.query(Team).filter(Team.id == team_data.id).first()
+        team.name = team_data.name
+        users_in_team = db.query(User_in_team).filter(User_in_team.team_id == team.id).all()
+        print(f'users_in_team: {users_in_team}')
+        for user_in_team in users_in_team:
+            if user_in_team.team_id == team.id and user_in_team.user_id not in team_data.members:
+                db.delete(user_in_team)
+        print(f'membes: {team_data.members}')
+        for user_id in team_data.members:
+            if not any(user_in_team.user_id == user_id for user_in_team in users_in_team):
+                user = db.query(User).filter(User.id == user_id).first()
+                print(f'adding {user.login}')
+                add_users_to_team_in_database(db, team, [user])
+        db.commit()
+        users = db.query(User).filter(User.id.in_(team_data.members)).all()
+        db.refresh(team)
+        print("Team updated successfully")
+    except Exception as e:
+        db.close()
+        return {"success": False, "message": e.__str__()}
+    finally:
+        db.close()
+        users = map_to_return_users(users)
+    return {"success": True, "team": {"id": team.id, "name": team.name, "members": users}}

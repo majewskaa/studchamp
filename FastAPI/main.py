@@ -123,6 +123,11 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class EditTeamData(BaseModel):
+    id: int
+    name: str
+    members: list
+
 def get_db():
     db = SessionLocal()
     try:
@@ -398,4 +403,14 @@ def patch_project_with_git_id(project_id: int, git_project_id: int):
 @app.get("/commits/{project_id}")
 def get_commits(project_id: int):
     response = fetch_commits(project_id)
+    return response
+
+@app.get("/edit_team_modal_data/{teamId}")
+def get_edit_team_modal_data(teamId: int):
+    response = fetch_edit_team_modal_data(teamId)
+    return response
+
+@app.post("/update_team")
+def edit_team(form_data: EditTeamData):
+    response = update_team(form_data)
     return response

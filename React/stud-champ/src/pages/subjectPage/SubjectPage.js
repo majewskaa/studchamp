@@ -37,7 +37,7 @@ function SubjectPage() {
                 </div>
             </div>
             <div className="subjects-page-section-large">
-                <div className="secton-container">
+                <div className="section-container">
                     <div className="section section-large">
                         <h2 className="title">Teams</h2>
                         {teamsList.map((team, index) => (
@@ -48,7 +48,7 @@ function SubjectPage() {
                         <Button variant="contained" className="add-team-btn" size="medium" onClick={() => setIsModalOpen(true)}>Add Team</Button>
                     </div>
                 </div>
-                <div className="secton-container">
+                <div className="section-container">
                 <div className="section section-large">
                         <h2 className="title">Colaboration Tasks</h2>
                         {taskList.map((task, index) => (

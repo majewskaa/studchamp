@@ -31,21 +31,7 @@ function HomePage() {
     <div>
             <div className='loggedin-page'>
                 <Header setIsLoggedIn={setIsLoggedIn} handleProfileButtonClicked={handleProfileButtonClicked} logout={logout}/>
-                <div className="secton-container">
-                    <div className="section">
-                        <h2 className="title">Last Updates</h2>
-                        {updatesList.map((update, index) => (
-                            <div className='card' key={index}>
-                                <div className='card update-card'>
-                                    <img className='content avatar' src={update.author.avatar} alt="person" />
-                                    <h3 className='right-side-card-content'>
-                                        <Breadcrumb subject={update.subject.id} project={update.project} task={update.task} />
-                                        <span className='content'>{update.type}: {update.content}</span>
-                                    </h3>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="section-container">
                     <div className="section section-large">
                         <h2 className="title">Your Subjects</h2>
                         {isUsosAuthenticated && <p>{subjectsList.map((subject, index) => (
@@ -72,21 +58,6 @@ function HomePage() {
                         </div>
 
                         }
-                    </div>
-                    <div className="section">
-                        <h2 className="title">Assigned to You</h2>
-                        {tasksAssignedToUser.map((task, index) => (
-                            <div className='card task-card' key={index}>
-                                <div className='content points'>
-                                    {task.points}
-                                </div>
-                                <div>
-                                    <Breadcrumb subject={task.subject.id} project={task.project} />
-                                    <h3 className='content'>{task.name}</h3>
-                                </div>
-                                <img className='content avatar' src={avatar} alt="person" />
-                            </div>
-                        ))}
                     </div>
                 </div>
             </div>

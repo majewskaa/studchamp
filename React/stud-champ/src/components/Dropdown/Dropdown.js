@@ -16,13 +16,17 @@ const Dropdown = ({ choice, setIsDropdownOpen, isDropdownOpen, selected, setSele
 
     function handleAssign(user) {
         setSelected((prevList) => {
-          if (prevList.includes(user)) {
-            const updatedList = prevList.filter((item) => item !== user);
+          if (hasOptionWithId(prevList, user.id)) {
+            const updatedList = prevList.filter((item) => item.id !== user.id);
             return updatedList;
           } else {
             return [...prevList, user];
           }
         });
+    }
+
+    function hasOptionWithId(list, id) {
+        return list.some((item) => item.id === id);
     }
 
     return (
@@ -40,7 +44,7 @@ const Dropdown = ({ choice, setIsDropdownOpen, isDropdownOpen, selected, setSele
                     key={option.id}
                     className="dropdown-item"
                     onClick={() => handleAssign(option)}>
-                        {selected.includes(option) && <GiCheckMark />}
+                        {hasOptionWithId(selected, option.id) && <GiCheckMark />}
                     <img
                         className="user-avatar"
                         src={avatar}

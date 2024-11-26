@@ -60,16 +60,20 @@ def create_team_in_database(db: Session, name: str, group_code: str, users: list
     db.commit()
     db.refresh(db_team)
 
+    add_users_to_team_in_database(db, db_team, db_users)
+    return db_team
+
+def add_users_to_team_in_database(db: Session, db_team: int, db_users: list):
     users = []
     for user in db_users:
         user_in_team = User_in_team(user_id=user.id, team_id=db_team.id)
         db.add(user_in_team)
+        db.commit()
+        db.refresh(user_in_team)
         users.append(user_in_team)
-    db_team.users = users
-    db.refresh(db_team)
-
+    db_team.users.extend(users)
     db.commit()
-    return db_team
+    db.refresh(db_team)
 
 def create_issue_in_database(db: Session, title: str, description: str, points: int, author_id: int, group_id: int, team_id: int, project_id: int):
     db_issue = Issue(title=title, description=description,

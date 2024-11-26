@@ -8,6 +8,7 @@ import coinImage from '../../resources/gold-coin.svg';
 import { Link } from 'react-router-dom';
 import AddProjectModal from '../../components/AddProjectModal';
 import Button from '@material-ui/core/Button';
+import EditTeamModal from '../../components/EditTeamModal/EditTeamModal.js';
 
 function TeamPage() {
     let { subject_id, team_id } = useParams();
@@ -16,6 +17,7 @@ function TeamPage() {
     const [projectsList, setProjectsList] = useState([]);
     const [responseMessage, setResponseMessage] = useState('');
     const [teamMembers, setTeamMembers] = useState([]);
+    const [teamName, setTeamName] = useState('');
     const { isLoggedIn, setIsLoggedIn, userId } = useContext(AuthContext);
     const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
     const [isEditTeamModalOpen, setIsEditTeamModalOpen] = useState(false);
@@ -23,6 +25,11 @@ function TeamPage() {
     const handleProfileButtonClicked = () => {
         //
     }
+
+    function setTeam(team) {
+        setTeamName(team.name);
+        setTeamMembers(team.members);
+    };
 
     useEffect(() => {
         fetch(process.env.REACT_APP_API_URL + '/projects/' + subject_id + '/' + team_id, {
@@ -77,7 +84,7 @@ function TeamPage() {
                 </div>
             </div>
             <div className='teams-page-section-large'>
-            <div className="secton-container-projects">
+            <div className="section-container-projects">
                 <div className="section section-large">
                     <h2 className="title">Projects</h2>
                     {projectsList.map((project, index) => (
@@ -93,7 +100,7 @@ function TeamPage() {
                 </div>
                 <AddProjectModal isOpen={isAddProjectModalOpen} onClose={() => setIsAddProjectModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} />
             </div>
-            <div className="secton-container-team-members">
+            <div className="section-container-team-members">
                 <div className="section section-large">
                     <h2 className="title">Team Members</h2>
                     {teamMembers.map((teamMember, index) => (
@@ -107,7 +114,7 @@ function TeamPage() {
                         <Button  variant="contained" size="medium" onClick={() => setIsEditTeamModalOpen(true)}>Edit</Button>
                     </div>
                 </div>
-                <EditTeamModal isOpen={isEditTeamModalOpen} onClose={() => setIsEditTeamModalOpen(false)} subjectId={subject_id} teamId={team_id} authorId={userId} />
+                <EditTeamModal isOpen={isEditTeamModalOpen} onClose={() => setIsEditTeamModalOpen(false)} teamId={team_id} setTeam={setTeam} />
             </div>
             </div>
         </div>

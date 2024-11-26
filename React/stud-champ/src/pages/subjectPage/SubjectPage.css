@@ -44,10 +44,20 @@
 }
 
 .team-card {
+    margin: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
+}
+
+.task-card {
+    margin: 0.5rem;
+    display: flex;
+    align-items: center;
+    .points {
+        margin: 0.8rem;
+        color: green;
+    }
 }
 
 .modal-backdrop {
